@@ -5,6 +5,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import com.example.bss.ui.PainelBemVindo;
 
+
+
 public class Main extends Application {
     @Override
     public void start(Stage stage) {
