@@ -1,6 +1,7 @@
 package app.controller;
 
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -30,30 +31,31 @@ public class Painel implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
+
         // 🔥 Carregar logo
         logo.setImage(
                 new Image(getClass().getResourceAsStream("/icons/logo.png"))
         );
 
-        // Fade logo
-        FadeTransition fadeLogo = new FadeTransition(Duration.seconds(1.5), logo);
-        fadeLogo.setFromValue(0);
-        fadeLogo.setToValue(1);
-        fadeLogo.play();
+        Platform.runLater(() -> {
 
-        // Fade texto
-        FadeTransition fadeTexto = new FadeTransition(Duration.seconds(1.5), mensagem);
-        fadeTexto.setFromValue(0);
-        fadeTexto.setToValue(1);
-        fadeTexto.setDelay(Duration.seconds(0.5));
-        fadeTexto.play();
+            FadeTransition fadeLogo = new FadeTransition(Duration.seconds(0.5), logo);
+            fadeLogo.setFromValue(0);
+            fadeLogo.setToValue(1);
+            fadeLogo.play();
 
-        // Fade botão
-        FadeTransition fadeBotao = new FadeTransition(Duration.seconds(1.5), iniciar);
-        fadeBotao.setFromValue(0);
-        fadeBotao.setToValue(1);
-        fadeBotao.setDelay(Duration.seconds(1));
-        fadeBotao.play();
+            FadeTransition fadeTexto = new FadeTransition(Duration.seconds(0.5), mensagem);
+            fadeTexto.setFromValue(0);
+            fadeTexto.setToValue(1);
+            fadeTexto.setDelay(Duration.seconds(0.5));
+            fadeTexto.play();
+
+            FadeTransition fadeBotao = new FadeTransition(Duration.seconds(0.5), iniciar);
+            fadeBotao.setFromValue(0);
+            fadeBotao.setToValue(1);
+            fadeBotao.setDelay(Duration.seconds(1));
+            fadeBotao.play();
+        });
     }
 
     @FXML

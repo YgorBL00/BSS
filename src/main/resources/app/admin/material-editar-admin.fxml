@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="app.controller.admin.MaterialEditarAdmin"
+            prefHeight="400" prefWidth="600">
+
+    <children>
+
+        <VBox spacing="15"
+              alignment="CENTER"
+              AnchorPane.topAnchor="50"
+              AnchorPane.leftAnchor="100"
+              AnchorPane.rightAnchor="100">
+
+            <Label text="Editar Valor do Material"
+                   style="-fx-font-size:18"/>
+
+            <Label text="Material:"/>
+
+            <Label fx:id="nomeLabel"/>
+
+            <Label text="Valor"/>
+
+            <TextField fx:id="valorField"/>
+
+            <Button text="Salvar"
+                    onAction="#salvar"/>
+
+        </VBox>
+
+    </children>
+
+</AnchorPane>

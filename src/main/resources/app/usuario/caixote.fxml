@@ -1,14 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="app.usuario.Caixote"
-            prefHeight="400.0" prefWidth="600.0">
+            fx:controller="app.controller.vendedor.CaixoteUsuario"
+            prefHeight="400.0" prefWidth="600.0"
+            style="-fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #b3e0ff, white);">
+
+    <children>
+
+        <VBox spacing="20"
+              alignment="TOP_CENTER"
+              AnchorPane.topAnchor="0"
+              AnchorPane.leftAnchor="0"
+              AnchorPane.rightAnchor="0"
+              AnchorPane.bottomAnchor="0">
+
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+
+            <Label text="Parte de Montagem"
+                   style="-fx-font-size: 22; -fx-text-fill: #23336f;" />
+
+            <GridPane hgap="10" vgap="10">
+
+                <Label text="Comprimento (m)" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtComprimento"
+                           GridPane.rowIndex="0"
+                           GridPane.columnIndex="1"/>
+
+                <Label text="Largura (m)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtLargura"
+                           GridPane.rowIndex="1"
+                           GridPane.columnIndex="1"/>
+
+                <Label text="Altura (m)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtAltura"
+                           GridPane.rowIndex="2"
+                           GridPane.columnIndex="1"/>
+
+                <Label text="Espessura do Painel (mm)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="cbEspessura"
+                          GridPane.rowIndex="3"
+                          GridPane.columnIndex="1"/>
+
+                <CheckBox fx:id="chkPiso"
+                          text="Possui piso"
+                          GridPane.rowIndex="4"
+                          GridPane.columnIndex="1"/>
+
+                <Label text="Tipo de Porta" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="cbTipoPorta"
+                          GridPane.rowIndex="5"
+                          GridPane.columnIndex="1"/>
+
+                <Label text="Qtd. Portas" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                <Spinner fx:id="spQtdPortas"
+                         GridPane.rowIndex="6"
+                         GridPane.columnIndex="1"/>
+
+                <Label text="Tamanho da Porta (L x A)" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtTamanhoPorta"
+                           text="0,80 x 1,80"
+                           GridPane.rowIndex="7"
+                           GridPane.columnIndex="1"/>
+
+                <Label text="Canto sem acabamento" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+                <Spinner fx:id="spCantoSemAcabamento"
+                         GridPane.rowIndex="8"
+                         GridPane.columnIndex="1"/>
+
+            </GridPane>
+
+            <Button text="Ir para Formato"
+                    fx:id="btnAvancar"
+                    onAction="#avancar"/>
+
+        </VBox>
+
+    </children>
 
 </AnchorPane>

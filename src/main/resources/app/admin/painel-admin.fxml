@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="app.controller.admin.PainelAdmin"
+            style="-fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #b3e0ff, white);">
+
+    <!-- HEADER -->
+    <top>
+        <HBox prefHeight="70"
+              alignment="CENTER_LEFT"
+              style="-fx-background-color: white;
+                     -fx-border-color: #d0d7e2;
+                     -fx-border-width: 0 0 1 0;">
+
+            <padding>
+                <Insets left="24" right="24"/>
+            </padding>
+
+            <Label fx:id="usuarioLabel"
+                   text="ADMIN"
+                   style="-fx-font-size: 14; -fx-text-fill: #23336f;"/>
+
+        </HBox>
+    </top>
+
+    <!-- CONTEÚDO -->
+    <center>
+
+        <VBox fx:id="conteudo"
+              spacing="24"
+              alignment="TOP_CENTER">
+
+            <padding>
+                <Insets top="32" left="32" right="32"/>
+            </padding>
+
+            <TilePane fx:id="cardsContainer"
+                      hgap="20"
+                      vgap="20"
+                      prefColumns="2"
+                      prefTileWidth="260"
+                      prefTileHeight="140"
+                      alignment="TOP_CENTER"/>
+
+        </VBox>
+
+    </center>
+
+</BorderPane>

@@ -1,10 +1,18 @@
 package app.controller;
 
+import app.service.AuthService;
+import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import app.dao.UsuarioDAO;
 import app.model.Usuario;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.*;
 import java.net.URL;
@@ -13,6 +21,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ResourceBundle;
 
 public class Login implements Initializable {
+
+    public VBox conteudo;
 
     @FXML
     private TextField emailField;
@@ -23,13 +33,20 @@ public class Login implements Initializable {
     @FXML
     private Label mensagemErro;
 
+
     private static final String ARQUIVO_EMAIL = "login.txt";
 
     // Chamado automaticamente quando a tela é carregada
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         carregarEmail();
+        FadeTransition fadeLogo = new FadeTransition(Duration.seconds(1.0), conteudo);
+        fadeLogo.setFromValue(0);
+        fadeLogo.setToValue(1);
+        fadeLogo.play();
     }
+
+
 
     @FXML
     private void fazerLogin() {
@@ -42,25 +59,58 @@ public class Login implements Initializable {
             return;
         }
 
-        UsuarioDAO dao = new UsuarioDAO();
-        Usuario usuario = dao.buscarPorEmail(email);
+        AuthService authService = new AuthService();
 
-        if (usuario == null) {
-            mensagemErro.setText("Email ou senha inválidos.");
-            return;
-        }
+        Usuario usuario = authService.login(email, senha);
 
-        // Comparar a senha com o hash armazenado
-        if (senhaValida(senha, usuario.getSenhaHash())) {
+        if (usuario != null) {
+
             mensagemErro.setText("");
-            System.out.println("Login realizado com sucesso! Usuário: " + usuario.getNome());
-
-            // Salvar email para próxima vez
             salvarEmail(usuario.getEmail());
 
-            // Aqui você pode abrir a próxima tela
+            System.out.println("Login realizado: " + usuario.getCargo());
+
+            // Verificar cargo
+            if ("ADMIN".equalsIgnoreCase(usuario.getCargo())) {
+
+                abrirTela("/app/admin/painel-admin.fxml", usuario);
+
+            } else if ("VENDEDOR".equalsIgnoreCase(usuario.getCargo())) {
+
+                abrirTela("/app/usuario/painel-usuario.fxml", usuario);
+
+            }
+
         } else {
             mensagemErro.setText("Email ou senha inválidos.");
+        }
+    }
+
+    private void abrirTela(String fxml, Usuario usuario) {
+        try {
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
+            Parent root = loader.load();
+
+            // pegar controller da tela
+            Object controller = loader.getController();
+
+            // se for painel de vendedor
+            if (controller instanceof app.controller.vendedor.PainelUsuario painel) {
+                painel.setUsuario(usuario);
+            }
+
+            // se for painel de admin
+            if (controller instanceof app.controller.admin.PainelAdmin painelAdmin) {
+                painelAdmin.setUsuario(usuario);
+            }
+
+            Stage stage = (Stage) emailField.getScene().getWindow();
+            stage.setScene(new Scene(root, 1150, 750));
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
