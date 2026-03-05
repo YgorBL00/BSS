@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="app.controller.Painel"
+            style="-fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #b3e0ff, white);">
+
+    <VBox alignment="TOP_CENTER"
+          spacing="30"
+          AnchorPane.topAnchor="0.0"
+          AnchorPane.bottomAnchor="0.0"
+          AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0">
+
+        <padding>
+            <Insets top="60"/>
+        </padding>
+
+        <!-- 🔥 LOGO -->
+        <ImageView fx:id="logo"
+                   fitHeight="80"
+                   preserveRatio="true"
+                   opacity="0"/>
+
+        <ImageView fx:id="espaço"
+                   fitHeight="30"
+                   preserveRatio="true"
+                   opacity="0">
+            <VBox.margin>
+                <Insets bottom="40"/>
+            </VBox.margin>
+        </ImageView>
+
+        <!-- TEXTO -->
+        <Label fx:id="mensagem"
+               text="Novo Projeto"
+               style="-fx-font-size: 28px; -fx-text-fill: #23336f;"
+               opacity="0"/>
+
+        <!-- BOTÃO -->
+        <Button fx:id="iniciar"
+                text="Iniciar"
+                prefWidth="150"
+                opacity="0"
+                onAction="#abrirLogin"
+                style="-fx-font-size: 18px;
+                       -fx-background-color: #245edb;
+                       -fx-text-fill: white;
+                       -fx-background-radius: 30;"/>
+
+    </VBox>
+
+</AnchorPane>
