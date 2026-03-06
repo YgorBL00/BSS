@@ -5,6 +5,7 @@ import app.service.FormatoCalculator;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.HashMap;
@@ -21,8 +22,14 @@ public class CaixoteUsuario {
     @FXML private ComboBox<String> cbTipoPorta;
     @FXML private Spinner<Integer> spQtdPortas;
     @FXML private TextField txtTamanhoPorta;
-    @FXML private Spinner<Integer> spCantoSemAcabamento;
+    @FXML private ComboBox<String> spCantoSemAcabamento;
     @FXML private Button btnAvancar;
+    @FXML private VBox boxCantos;
+
+    @FXML private CheckBox chkFrente;
+    @FXML private CheckBox chkAtras;
+    @FXML private CheckBox chkLadoEsquerdo;
+    @FXML private CheckBox chkLadoDireito;
 
     private Stage stage;
     private Usuario usuario;
@@ -39,13 +46,23 @@ public class CaixoteUsuario {
     public void initialize() {
 
         cbEspessura.getItems().addAll(50, 70, 100, 120, 150);
-        cbTipoPorta.getItems().addAll("Giratória", "Correr", "Pivotante");
+        cbTipoPorta.getItems().addAll("Giratória", "Correr");
 
         spQtdPortas.setValueFactory(
                 new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 1));
 
-        spCantoSemAcabamento.setValueFactory(
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 4, 1));
+        spCantoSemAcabamento.getItems().addAll("Não", "Sim");
+
+        spCantoSemAcabamento.setValue("Não");
+
+        spCantoSemAcabamento.valueProperty().addListener((obs, oldValue, newValue) -> {
+
+            boolean mostrar = "Sim".equals(newValue);
+
+            boxCantos.setVisible(mostrar);
+            boxCantos.setManaged(mostrar);
+
+        });
 
         spQtdPortas.setDisable(true);
 
@@ -56,6 +73,11 @@ public class CaixoteUsuario {
 
     @FXML
     private void avancar() {
+
+        String tipoPorta = cbTipoPorta.getValue();
+        int qtdPortas = spQtdPortas.getValue();
+
+        String tamanhoPorta = txtTamanhoPorta.getText();
 
         try {
 
@@ -75,45 +97,165 @@ public class CaixoteUsuario {
             boolean possuiPiso = chkPiso.isSelected();
 
             var resultados = FormatoCalculator.calcular(C, L, A, E, possuiPiso);
+
+            int cantoneiraFinal = resultados.cantoneiraExterna;
+
+            // largura
+            if (chkLadoEsquerdo.isSelected()) {
+                cantoneiraFinal -= resultados.cantoneiraExterna / 4;
+            }
+
+            if (chkLadoDireito.isSelected()) {
+                cantoneiraFinal -= resultados.cantoneiraExterna / 4;
+            }
+
+            // comprimento
+            if (chkFrente.isSelected()) {
+                cantoneiraFinal -= resultados.cantoneiraExterna / 4;
+            }
+
+            if (chkAtras.isSelected()) {
+                cantoneiraFinal -= resultados.cantoneiraExterna / 4;
+            }
+
             int espessura = cbEspessura.getValue();
+
+            // =============================
+            // PERFIL E CANTONEIRA POR ESPESSURA
+            // =============================
+
+            String perfilUDescricao = "40x" + espessura + "x40x3000";
+
+            String cantoneiraExternaDescricao;
+
+            switch (espessura) {
+
+                case 50:
+                    cantoneiraExternaDescricao = "40x90x3000";
+                    break;
+
+                case 70:
+                    cantoneiraExternaDescricao = "40x120x3000";
+                    break;
+
+                case 100:
+                    cantoneiraExternaDescricao = "40x140x3000";
+                    break;
+
+                case 120:
+                    cantoneiraExternaDescricao = "40x160x3000";
+                    break;
+
+                case 150:
+                    cantoneiraExternaDescricao = "40x190x3000";
+                    break;
+
+                default:
+                    cantoneiraExternaDescricao = "modelo não definido";
+            }
 
             System.out.println("\n===== LISTA DE MATERIAIS =====");
 
-// PAREDE
+            // =============================
+            // PAREDE
+            // =============================
+
             System.out.println(
                     resultados.paineisParede +
-                            " paineis " + espessura + "mm 1,15x" +
+                            " Paineis " + espessura + "mm 1,15x" +
                             String.format("%.2f", resultados.alturaParedeReal) +
-                            " - parede"
+                            " - PAREDE"
             );
 
             imprimirRecortes(resultados.recortesParede, espessura, "parede");
 
-// TETO
+            // =============================
+            // TETO
+            // =============================
+
             System.out.println(
                     resultados.paineisTeto +
-                            " paineis " + espessura + "mm 1,15x" +
+                            " Paineis " + espessura + "mm 1,15x" +
                             String.format("%.2f", resultados.alturaTetoReal) +
-                            " - teto"
+                            " - TETO"
             );
 
             imprimirRecortes(resultados.recortesTeto, espessura, "teto");
 
-// PISO
+            // =============================
+            // PISO
+            // =============================
+
             if (resultados.requerPiso) {
 
                 System.out.println(
                         resultados.paineisPiso +
-                                " paineis " + espessura + "mm 1,15x" +
+                                " Paineis " + espessura + "mm 1,15x" +
                                 String.format("%.2f", resultados.alturaPisoReal) +
-                                " - piso"
+                                " - PISO"
                 );
 
                 imprimirRecortes(resultados.recortesPiso, espessura, "piso");
             }
+            // =============================
+            // PORTA
+            // =============================
+
+            if (tipoPorta != null && qtdPortas > 0) {
+
+                System.out.println(
+                        qtdPortas +
+                                " Porta frigorífica " +
+                                tipoPorta +
+                                " " +
+                                tamanhoPorta
+                );
+            }
+
+            // =============================
+            // PU
+            // =============================
+
+            System.out.println(
+                    resultados.sachePU +
+                            " Sachês PU 40 (600ml) - vedação das juntas (" +
+                            String.format("%.2f", resultados.metrosJuntaPU) +
+                            " m de junta)"
+            );
+
+            // =============================
+            // ACABAMENTOS
+            // =============================
+
+            System.out.println(
+                    resultados.cantoneiraInterna +
+                            " Cantoneiras internas 3m"
+            );
+
+            System.out.println(
+                    cantoneiraFinal +
+                            " Cantoneiras externas " +
+                            cantoneiraExternaDescricao
+            );
+
+            System.out.println(
+                    resultados.perfilU +
+                            " Perfil U " +
+                            perfilUDescricao
+            );
+
+            // =============================
+            // FIXAÇÃO
+            // =============================
+
+            System.out.println(resultados.rebites + " Rebite 3.2x12");
+
+            System.out.println(
+                    resultados.parafusos +
+                            " Parafusos n°8 c/ bucha e arruela 3/8"
+            );
 
             System.out.println("===============================");
-
 
         } catch (Exception e) {
 

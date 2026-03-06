@@ -70,9 +70,23 @@
                            GridPane.columnIndex="1"/>
 
                 <Label text="Canto sem acabamento" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
-                <Spinner fx:id="spCantoSemAcabamento"
-                         GridPane.rowIndex="8"
-                         GridPane.columnIndex="1"/>
+                <ComboBox fx:id="spCantoSemAcabamento"
+                          GridPane.rowIndex="8"
+                          GridPane.columnIndex="1"/>
+
+                <VBox fx:id="boxCantos"
+                      spacing="5"
+                      visible="false"
+                      managed="false"
+                      GridPane.rowIndex="9"
+                      GridPane.columnIndex="1">
+
+                    <CheckBox fx:id="chkFrente" text="Frente (Comprimento)"/>
+                    <CheckBox fx:id="chkAtras" text="Atrás (Comprimento)"/>
+                    <CheckBox fx:id="chkLadoEsquerdo" text="Lado Esquerdo (Largura)"/>
+                    <CheckBox fx:id="chkLadoDireito" text="Lado Direito (Largura)"/>
+
+                </VBox>
 
             </GridPane>
 
