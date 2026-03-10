@@ -28,52 +28,75 @@
 
             <GridPane hgap="10" vgap="10">
 
-                <Label text="Comprimento (m)" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                <TextField fx:id="txtComprimento"
+                <!-- Nome do Cliente -->
+                <Label text="Cliente" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtCliente"
+                           promptText="Nome do cliente"
                            GridPane.rowIndex="0"
                            GridPane.columnIndex="1"/>
 
-                <Label text="Largura (m)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <TextField fx:id="txtLargura"
-                           GridPane.rowIndex="1"
-                           GridPane.columnIndex="1"/>
+                <!-- Tipo da Câmara -->
+                <Label text="Tipo da Câmara"
+                       GridPane.rowIndex="1"
+                       GridPane.columnIndex="0"/>
 
-                <Label text="Altura (m)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                <TextField fx:id="txtAltura"
+                <HBox spacing="10"
+                      GridPane.rowIndex="1"
+                      GridPane.columnIndex="1">
+
+                    <RadioButton fx:id="rbCongelado" text="Congelado"/>
+                    <RadioButton fx:id="rbResfriado" text="Resfriado"/>
+
+                </HBox>
+
+                <!-- Comprimento -->
+                <Label text="Comprimento (m)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtComprimento"
                            GridPane.rowIndex="2"
                            GridPane.columnIndex="1"/>
 
-                <Label text="Espessura do Painel (mm)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <!-- Largura -->
+                <Label text="Largura (m)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtLargura"
+                           GridPane.rowIndex="3"
+                           GridPane.columnIndex="1"/>
+
+                <!-- Altura -->
+                <Label text="Altura (m)" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtAltura"
+                           GridPane.rowIndex="4"
+                           GridPane.columnIndex="1"/>
+
+                <!-- Espessura -->
+                <Label text="Espessura do Painel (mm)" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
                 <ComboBox fx:id="cbEspessura"
-                          GridPane.rowIndex="3"
-                          GridPane.columnIndex="1"/>
-
-                <CheckBox fx:id="chkPiso"
-                          text="Possui piso"
-                          GridPane.rowIndex="4"
-                          GridPane.columnIndex="1"/>
-
-                <Label text="Tipo de Porta" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-                <ComboBox fx:id="cbTipoPorta"
                           GridPane.rowIndex="5"
                           GridPane.columnIndex="1"/>
 
-                <Label text="Qtd. Portas" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-                <Spinner fx:id="spQtdPortas"
-                         GridPane.rowIndex="6"
-                         GridPane.columnIndex="1"/>
+                <!-- Piso -->
+                <CheckBox fx:id="chkPiso"
+                          text="Possui piso"
+                          GridPane.rowIndex="6"
+                          GridPane.columnIndex="1"/>
 
-                <Label text="Tamanho da Porta (L x A)" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
-                <TextField fx:id="txtTamanhoPorta"
-                           text="0,80 x 1,80"
-                           GridPane.rowIndex="7"
-                           GridPane.columnIndex="1"/>
+                <!-- Porta -->
+                <Label text="Porta" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
 
-                <Label text="Canto sem acabamento" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+                <Button text="Configurar Portas"
+                        onAction="#abrirConfigPortas"
+                        GridPane.rowIndex="7"
+                        GridPane.columnIndex="1"/>
+
+                <!-- Canto -->
+                <Label text="Canto sem acabamento"
+                       GridPane.rowIndex="8"
+                       GridPane.columnIndex="0"/>
+
                 <ComboBox fx:id="spCantoSemAcabamento"
                           GridPane.rowIndex="8"
                           GridPane.columnIndex="1"/>
 
+                <!-- Cantos -->
                 <VBox fx:id="boxCantos"
                       spacing="5"
                       visible="false"
@@ -90,6 +113,7 @@
 
             </GridPane>
 
+            <!-- Botão final -->
             <Button text="Ir para Formato"
                     fx:id="btnAvancar"
                     onAction="#avancar"/>

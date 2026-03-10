@@ -9,11 +9,13 @@ public class Material {
     private DoubleProperty valor = new SimpleDoubleProperty();
     private StringProperty unidade = new SimpleStringProperty();
     private StringProperty classe = new SimpleStringProperty();
+    private StringProperty codigo = new SimpleStringProperty();
 
     public Material() {}
 
-    public Material(int id, String nome, double valor, String unidade, String classe) {
+    public Material(int id, String codigo, String nome, double valor, String unidade, String classe) {
         this.id.set(id);
+        this.codigo.set(codigo);
         this.nome.set(nome);
         this.valor.set(valor);
         this.unidade.set(unidade);
@@ -39,6 +41,16 @@ public class Material {
     public String getClasse() { return classe.get(); }
     public void setClasse(String classe) { this.classe.set(classe); }
     public StringProperty classeProperty() { return classe; }
+
+    public String getCodigo() {
+        return codigo.get();
+    }
+    public void setCodigo(String codigo) {
+        this.codigo.set(codigo);
+    }
+    public StringProperty codigoProperty() {
+        return codigo;
+    }
 
     public class Espessura {
 

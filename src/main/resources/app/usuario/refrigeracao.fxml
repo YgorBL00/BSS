@@ -1,14 +1,208 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="app.usuario.Refrigeracao"
-            prefHeight="400.0" prefWidth="600.0">
+            fx:controller="app.controller.vendedor.RefrigeracaoUsuario"
+            prefHeight="720" prefWidth="1050"
+            minHeight="720" minWidth="1050"
+            maxHeight="720" maxWidth="1050"
+            style="-fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #b3e0ff, white);">
+
+    <children>
+
+        <VBox spacing="25"
+              alignment="TOP_CENTER"
+              AnchorPane.topAnchor="0"
+              AnchorPane.leftAnchor="0"
+              AnchorPane.rightAnchor="0"
+              AnchorPane.bottomAnchor="0">
+
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+
+            <!-- TÍTULO -->
+
+            <Label text="Cálculo de Refrigeração"
+                   style="-fx-font-size: 26; -fx-text-fill: #23336f; -fx-font-weight: bold;"/>
+
+            <!-- =============================== -->
+            <!-- BLOCO 1 -->
+            <!-- =============================== -->
+
+            <VBox spacing="15"
+                  style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:5; -fx-background-radius:5;">
+
+                <padding>
+                    <Insets top="15" right="20" bottom="20" left="20"/>
+                </padding>
+
+                <Label text="Dados da Câmara"
+                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
+
+                <GridPane hgap="15" vgap="12">
+
+                    <Label text="Cliente" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblCliente" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="Tipo Câmara" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblTipo" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="Dimensões (C x L x A)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblDimensoes" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="Espessura Painel" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblEspessura" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <Label text="Área da Porta" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblAreaPorta" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                </GridPane>
+
+            </VBox>
+
+            <!-- =============================== -->
+            <!-- BLOCO 2 -->
+            <!-- =============================== -->
+
+            <VBox spacing="15"
+                  style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:5; -fx-background-radius:5;">
+
+                <padding>
+                    <Insets top="15" right="20" bottom="20" left="20"/>
+                </padding>
+
+                <Label text="Parâmetros de Refrigeração"
+                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
+
+                <BorderPane>
+
+                    <!-- ESQUERDA -->
+
+                    <left>
+
+                        <GridPane hgap="10" vgap="10" alignment="TOP_LEFT">
+
+                            <BorderPane.margin>
+                                <Insets top="0" right="60" bottom="0" left="0"/>
+                            </BorderPane.margin>
+
+                            <Label text="Temperatura Interna (°C)" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtTempInterna" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                            <Label text="Temperatura Ambiente (°C)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <ComboBox fx:id="cbTempAmbiente" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                            <Label text="Temperatura de Entrada" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtTempEntrada" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                            <Label text="Carga Produto (kg/d)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtCargaProduto" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+
+                        </GridPane>
+
+                    </left>
+
+                    <!-- MEIO -->
+
+                    <center>
+
+                        <GridPane hgap="10" vgap="10" alignment="TOP_CENTER">
+
+                            <BorderPane.margin>
+                                <Insets top="0" right="60" bottom="0" left="60"/>
+                            </BorderPane.margin>
+
+                            <Label text="Variedade" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <ComboBox fx:id="cbVariedade" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                            <Label text="Produto" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <ComboBox fx:id="cbProduto" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                            <Label text="Condutividade Produto" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtCondutividade" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                            <Label text="Tempo de Processo (h)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtTempoProcesso" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                        </GridPane>
+
+                    </center>
+
+                    <!-- DIREITA -->
+
+                    <right>
+
+                        <GridPane hgap="10" vgap="10" alignment="TOP_RIGHT">
+
+                            <BorderPane.margin>
+                                <Insets top="0" right="0" bottom="0" left="60"/>
+                            </BorderPane.margin>
+
+                            <Label text="Distância Quadro → UC (m)" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtDistQuadroUC" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                            <Label text="Distância Quadro → EU (m)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtDistQuadroEU" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                            <Label text="Distância UE → UC (m)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtDistUEUC" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                            <Label text="Altura da Infra (m)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtAlturaInfra" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                        </GridPane>
+
+                    </right>
+
+                </BorderPane>
+
+            </VBox>
+
+            <!-- =============================== -->
+            <!-- BLOCO 3 -->
+            <!-- =============================== -->
+
+            <VBox spacing="2"
+                  alignment="CENTER"
+                  style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:5; -fx-background-radius:5;">
+
+                <padding>
+                    <Insets top="5" right="10" bottom="5" left="10"/>
+                </padding>
+
+                <Label text="Resultado da Refrigeração"
+                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
+
+                <Label text="Carga térmica estimada"/>
+                <Label fx:id="lblCargaTermica"
+                       style="-fx-font-size:18; -fx-font-weight:bold;"/>
+
+                <Label text="Equipamento sugerido"/>
+                <Label fx:id="lblEquipamento"
+                       style="-fx-font-size:18; -fx-font-weight:bold;"/>
+
+            </VBox>
+
+            <!-- BOTÕES -->
+
+            <HBox spacing="20" alignment="CENTER">
+
+                <Button text="Voltar" fx:id="btnVoltar" onAction="#voltarCaixote"/>
+                <Button text="Calcular Refrigeração" fx:id="btnCalcular"/>
+                <Button text="Proximo"
+                        fx:id="btnOrcamento"
+                        onAction="#abrirResultado"/>
+
+            </HBox>
+
+        </VBox>
+
+    </children>
 
 </AnchorPane>

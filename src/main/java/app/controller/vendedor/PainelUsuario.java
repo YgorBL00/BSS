@@ -14,6 +14,7 @@ import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.application.Platform;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -37,9 +38,10 @@ public class PainelUsuario implements Initializable {
         criarCard("Projeto");
         criarCard("Projeto Salvos");
 
+        // começa invisível
         conteudo.setOpacity(0);
 
-        FadeTransition fade = new FadeTransition(Duration.millis(700), conteudo);
+        FadeTransition fade = new FadeTransition(Duration.seconds(0.7), conteudo);
         fade.setFromValue(0);
         fade.setToValue(1);
         fade.play();
@@ -105,8 +107,11 @@ public class PainelUsuario implements Initializable {
 
         });
 
+
         cardsContainer.getChildren().add(card);
     }
+
+
 
     private void abrirTela(String fxml) {
         try {

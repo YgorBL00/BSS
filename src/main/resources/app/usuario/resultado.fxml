@@ -1,14 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="app.usuario.Resultado"
-            prefHeight="400.0" prefWidth="600.0">
+            fx:controller="app.controller.vendedor.ResultadoUsuario"
+            prefHeight="720" prefWidth="1050"
+            style="-fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #b3e0ff, white);">
+
+    <children>
+
+        <VBox spacing="20"
+              alignment="TOP_CENTER"
+              AnchorPane.topAnchor="0"
+              AnchorPane.leftAnchor="0"
+              AnchorPane.rightAnchor="0"
+              AnchorPane.bottomAnchor="0">
+
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+
+            <!-- TÍTULO -->
+
+            <Label text="Resultado do Orçamento"
+                   style="-fx-font-size:26; -fx-text-fill:#23336f; -fx-font-weight:bold;"/>
+
+            <!-- INFORMAÇÕES DO CLIENTE -->
+
+            <HBox spacing="40" alignment="CENTER_LEFT">
+
+                <Label text="Cliente:"/>
+                <Label fx:id="lblCliente"/>
+
+                <Label text="Tipo Câmara:"/>
+                <Label fx:id="lblTipo"/>
+
+                <Label text="Dimensões:"/>
+                <Label fx:id="lblDimensoes"/>
+
+            </HBox>
+
+            <!-- TABELA DE MATERIAIS -->
+
+            <VBox spacing="10"
+                  style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:5; -fx-background-radius:5;">
+
+                <padding>
+                    <Insets top="15" right="15" bottom="15" left="15"/>
+                </padding>
+
+                <Label text="Lista de Materiais"
+                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
+
+                <TableView fx:id="tableMateriais" prefHeight="400">
+
+                    <columns>
+
+                        <TableColumn text="Item"
+                                     fx:id="colItem"
+                                     prefWidth="350"/>
+
+                        <TableColumn text="Descrição"
+                                     fx:id="colDescricao"
+                                     prefWidth="350"/>
+
+                        <TableColumn text="Quantidade"
+                                     fx:id="colQuantidade"
+                                     prefWidth="150"/>
+
+                        <TableColumn text="Unidade"
+                                     fx:id="colUnidade"
+                                     prefWidth="100"/>
+
+                    </columns>
+
+                </TableView>
+
+            </VBox>
+
+            <!-- BOTÕES -->
+
+            <HBox spacing="20" alignment="CENTER">
+
+                <Button text="Voltar" fx:id="btnVoltar" onAction="#voltarRefrigeracao"/>
+
+                <Button text="Gerar Orçamento"
+                        fx:id="btnGerarOrcamento"/>
+
+                <Button text="Exportar PDF"
+                        fx:id="btnExportar"/>
+
+            </HBox>
+
+        </VBox>
+
+    </children>
 
 </AnchorPane>

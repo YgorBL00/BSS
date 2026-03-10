@@ -12,20 +12,25 @@ public class MaterialService {
     public List<Material> buscarTodos() {
 
         List<Material> lista = new ArrayList<>();
-        String sql = "SELECT * FROM materiais ORDER BY id";
+
+        String sql = "SELECT id, codigo, nome, valor, unidade, classe FROM materiais ORDER BY id";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                lista.add(new Material(
+
+                Material m = new Material(
                         rs.getInt("id"),
+                        rs.getString("codigo"),
                         rs.getString("nome"),
                         rs.getDouble("valor"),
                         rs.getString("unidade"),
                         rs.getString("classe")
-                ));
+                );
+
+                lista.add(m);
             }
 
         } catch (SQLException e) {
@@ -49,6 +54,31 @@ public class MaterialService {
 
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    // =========================
+    // TESTE
+    // =========================
+
+    public static void main(String[] args) {
+
+        MaterialService service = new MaterialService();
+
+        List<Material> materiais = service.buscarTodos();
+
+        System.out.println("=== LISTA DE MATERIAIS ===");
+
+        for (Material m : materiais) {
+
+            System.out.println(
+                    "ID: " + m.getId() +
+                            " | Código: " + m.getCodigo() +
+                            " | Nome: " + m.getNome() +
+                            " | Valor: " + m.getValor() +
+                            " | Unidade: " + m.getUnidade() +
+                            " | Classe: " + m.getClasse()
+            );
         }
     }
 }
