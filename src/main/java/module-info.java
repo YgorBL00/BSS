@@ -8,7 +8,8 @@ module com.financecontrol.bss {
     opens app to javafx.fxml;
     opens app.controller to javafx.fxml;
     opens app.controller.admin to javafx.fxml;
-    opens app.controller.vendedor to javafx.fxml;
+
+    opens app.controller.vendedor to javafx.fxml, javafx.base;
 
     exports app;
 }

@@ -68,6 +68,7 @@ public class CaixoteUsuario {
 
     private Map<String, Material> materiaisPorCodigo = new HashMap<>();
 
+
     // =============================
     // VARIÁVEIS
     // =============================
@@ -329,8 +330,8 @@ public class CaixoteUsuario {
         // =============================
 
         // =============================
-// PISO
-// =============================
+        // PISO
+        // =============================
 
         if (resultados.requerPiso) {
 
@@ -700,22 +701,54 @@ public class CaixoteUsuario {
 
             controller.setUsuario(usuario);
             controller.setResultados(resultados);
+            controller.setEspessura(cbEspessura.getValue());
+            controller.setPortas(portas);
+
+            controller.setCliente(txtCliente.getText());
+            controller.setTipoCamara(rbCongelado.isSelected() ? "CONGELADOS" : "RESFRIADOS");
+            controller.setDimensoes(
+                    txtComprimento.getText() + " x " +
+                            txtLargura.getText() + " x " +
+                            txtAltura.getText()
+            );
 
             Stage stage = (Stage) btnAvancar.getScene().getWindow();
-
-            Scene scene = new Scene(root, 1150, 750);
-            stage.setScene(scene);
-
-            // ===== FADE TRANSITION =====
-            FadeTransition fade = new FadeTransition(Duration.seconds(1), root);
-            fade.setFromValue(0);
-            fade.setToValue(1);
-            fade.play();
-
-            stage.show();
+            stage.setScene(new Scene(root, 1150, 750));
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 }
+
+
+//    private void abrirTelaResultado(FormatoCalculator.ResultadoFormato resultados) {
+//
+//        try {
+//
+//            FXMLLoader loader = new FXMLLoader(
+//                    getClass().getResource("/app/usuario/resultado.fxml")
+//            );
+//
+//            Parent root = loader.load();
+//
+//            ResultadoUsuario controller = loader.getController();
+//
+//            controller.setUsuario(usuario);
+//            controller.setResultados(resultados);
+//            controller.setEspessura(cbEspessura.getValue());
+//
+//            controller.setCliente(txtCliente.getText());
+//            controller.setTipoCamara(rbCongelado.isSelected() ? "CONGELADOS" : "RESFRIADOS");
+//            controller.setDimensoes(
+//                    txtComprimento.getText() + " x " +
+//                            txtLargura.getText() + " x " +
+//                            txtAltura.getText()
+//            );
+//
+//            Stage stage = (Stage) btnAvancar.getScene().getWindow();
+//            stage.setScene(new Scene(root));
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }

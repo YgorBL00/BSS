@@ -52,18 +52,21 @@
                 <!-- Comprimento -->
                 <Label text="Comprimento (m)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
                 <TextField fx:id="txtComprimento"
+                           promptText="Comprimento"
                            GridPane.rowIndex="2"
                            GridPane.columnIndex="1"/>
 
                 <!-- Largura -->
                 <Label text="Largura (m)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                 <TextField fx:id="txtLargura"
+                           promptText="Largura"
                            GridPane.rowIndex="3"
                            GridPane.columnIndex="1"/>
 
                 <!-- Altura -->
                 <Label text="Altura (m)" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
                 <TextField fx:id="txtAltura"
+                           promptText="Altura"
                            GridPane.rowIndex="4"
                            GridPane.columnIndex="1"/>
 

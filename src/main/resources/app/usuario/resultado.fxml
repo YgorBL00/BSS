@@ -61,7 +61,7 @@
 
                         <TableColumn text="Item"
                                      fx:id="colItem"
-                                     prefWidth="350"/>
+                                     prefWidth="100"/>
 
                         <TableColumn text="Descrição"
                                      fx:id="colDescricao"
@@ -69,11 +69,15 @@
 
                         <TableColumn text="Quantidade"
                                      fx:id="colQuantidade"
-                                     prefWidth="150"/>
+                                     prefWidth="20"/>
 
                         <TableColumn text="Unidade"
                                      fx:id="colUnidade"
-                                     prefWidth="100"/>
+                                     prefWidth="50"/>
+
+                        <TableColumn fx:id="colValor" text="Valor Unit." prefWidth="120"/>
+
+                        <TableColumn fx:id="colTotal" text="Total" prefWidth="120"/>
 
                     </columns>
 
