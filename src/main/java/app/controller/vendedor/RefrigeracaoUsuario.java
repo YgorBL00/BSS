@@ -1,33 +1,52 @@
 package app.controller.vendedor;
 
+import app.model.LogicaRefrigeracao;
 import app.model.Porta;
 import app.model.Usuario;
+import app.model.LogicaRefrigeracao;
+import app.service.CacheSistema;
 import app.service.FormatoCalculator;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import app.model.Produto;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
-import javafx.scene.control.Button;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.util.List;
 
 public class RefrigeracaoUsuario {
 
     @FXML public Button btnOrcamento;
+    @FXML public TextField txtTempInterna;
+    @FXML public TextField txtTempEntrada;
+    @FXML public TextField txtCargaProduto;
+    @FXML public TextField txtDistQuadroUC;
+    @FXML public TextField txtDistQuadroEU;
+    @FXML public TextField txtDistUEUC;
+    @FXML public TextField txtAlturaInfra;
+    public Label lblCargaTermica;
+    public Label lblEquipamento;
     @FXML private Label lblCliente;
     @FXML private Label lblTipo;
     @FXML private Label lblDimensoes;
     @FXML private Label lblEspessura;
     @FXML private Label lblAreaPorta;
+    @FXML private ComboBox<String> cbVariedade;
+    @FXML private ComboBox<String> cbProduto;
+    @FXML private ComboBox<Integer> cbTempAmbiente;
+    @FXML private TextField txtTempoProcesso;
+    @FXML private TextField txtCondutividade;
 
     private Usuario usuario;
     private FormatoCalculator.ResultadoFormato resultados;
     private int espessura;
     private List<Porta> portas;
+    private List<Produto> todosProdutos;
 
     public void setEspessura(int espessura) {this.espessura = espessura;if(lblEspessura != null){lblEspessura.setText(espessura + " mm");}}
     public void setUsuario(Usuario usuario) {this.usuario = usuario;}
@@ -35,6 +54,123 @@ public class RefrigeracaoUsuario {
     public void setCliente(String cliente) {lblCliente.setText(cliente);}
     public void setTipoCamara(String tipo) {lblTipo.setText(tipo);}
     public void setDimensoes(String dim) {lblDimensoes.setText(dim);}
+
+    @FXML
+    public void initialize() {
+
+        cbTempAmbiente.setItems(FXCollections.observableArrayList(
+                32, 35, 38, 43
+        ));
+
+        cbTempAmbiente.setValue(32); // padrão
+
+        txtTempoProcesso.setText("24");
+
+        cbVariedade.setItems(FXCollections.observableArrayList(
+                "Todos",
+                "Carnes",
+                "Frutas",
+                "Verduras",
+                "Bebidas",
+                "Laticinios"
+        ));
+
+        // agora usa memória
+        todosProdutos = CacheSistema.getProdutos();
+
+        cbVariedade.setOnAction(e -> carregarProdutos());
+    }
+
+    private double getCalorMedio(String categoria){
+
+        switch (categoria){
+
+            case "carne":
+                return 0.80;
+
+            case "fruta":
+                return 0.90;
+
+            case "verdura":
+                return 0.95;
+
+            case "bebida":
+                return 1.00;
+
+            case "laticinio":
+                return 0.85;
+
+            default:
+                return 0.90;
+        }
+    }
+
+    private void carregarProdutos() {
+
+        String variedade = cbVariedade.getValue();
+
+        ObservableList<String> lista = FXCollections.observableArrayList();
+
+        if (variedade == null) return;
+
+        if (variedade.equals("Todos")) {
+
+            for (Produto p : todosProdutos) {
+                lista.add(p.getNome());
+            }
+
+        } else {
+
+            String categoria = "";
+
+            switch (variedade) {
+                case "Carnes":
+                    categoria = "carne";
+                    break;
+
+                case "Frutas":
+                    categoria = "fruta";
+                    break;
+
+                case "Verduras":
+                    categoria = "verdura";
+                    break;
+
+                case "Bebidas":
+                    categoria = "bebida";
+                    break;
+
+                case "Laticinios":
+                    categoria = "laticinio";
+                    break;
+            }
+
+            for (Produto p : todosProdutos) {
+
+                if (p.getCategoria().equalsIgnoreCase(categoria)) {
+                    lista.add(p.getNome());
+                }
+            }
+        }
+
+        cbProduto.setOnAction(e -> {
+
+            String nome = cbProduto.getValue();
+
+            for(Produto p : todosProdutos){
+
+                if(p.getNome().equals(nome)){
+
+                    double calor = getCalorMedio(p.getCategoria());
+
+                    txtCondutividade.setText(String.valueOf(calor));
+                    break;
+                }
+            }
+        });
+
+        cbProduto.setItems(lista);
+    }
 
     @FXML
     public void abrirResultado() {
@@ -52,7 +188,10 @@ public class RefrigeracaoUsuario {
                     usuario,
                     resultados,
                     espessura,
-                    "", "", "", portas
+                    lblCliente.getText(),   // passa o cliente
+                    lblTipo.getText(),      // passa o tipo de câmara
+                    lblDimensoes.getText(),
+                    portas // passa as dimensões portas
             );
 
             Stage stage = (Stage) btnOrcamento.getScene().getWindow();
@@ -112,6 +251,92 @@ public class RefrigeracaoUsuario {
 
         if(lblAreaPorta != null){
             lblAreaPorta.setText(String.format("%.2f m²", area));
+        }
+    }
+
+    @FXML
+    public void calcularRefrigeracao() {
+
+        // 1️⃣ Verificação de campos obrigatórios
+        if(txtTempInterna.getText().isEmpty() ||
+                txtTempEntrada.getText().isEmpty() ||
+                txtCargaProduto.getText().isEmpty() ||
+                txtTempoProcesso.getText().isEmpty() ||
+                cbProduto.getValue() == null ||
+                cbVariedade.getValue() == null ||
+                cbTempAmbiente.getValue() == null ||
+                resultados == null) {
+
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Dados incompletos");
+            alert.setHeaderText(null);
+            alert.setContentText("Por favor, preencha todos os campos antes de calcular.");
+            alert.showAndWait();
+            return;
+        }
+
+        try {
+            // 2️⃣ Extrair valores
+            double tempInterna = Double.parseDouble(txtTempInterna.getText());
+            double tempEntrada = Double.parseDouble(txtTempEntrada.getText());
+            double cargaProduto = Double.parseDouble(txtCargaProduto.getText());
+            double tempoProcesso = Double.parseDouble(txtTempoProcesso.getText());
+            int tempAmbiente = cbTempAmbiente.getValue();
+
+            // 3️⃣ Produto selecionado
+            List<LogicaRefrigeracao.Produto> listaProdutos = List.of(
+                    new LogicaRefrigeracao.Produto(
+                            cbProduto.getValue(),
+                            cbVariedade.getValue(),
+                            cargaProduto,
+                            Double.parseDouble(txtCondutividade.getText()),
+                            tempEntrada
+                    )
+            );
+
+            // 4️⃣ Calcular área e volume da câmara (usando Resultados do FormatoCalculator)
+            double areaPainel = resultados.getAreaTotal();      // m²
+            double volumeCamara = resultados.getVolumeTotal();  // m³
+
+            // 5️⃣ Chamada do motor de cálculo
+            double cargaKcal = LogicaRefrigeracao.calcularCargaTermica(
+                    areaPainel,
+                    volumeCamara,
+                    tempInterna,
+                    tempAmbiente,
+                    listaProdutos,
+                    espessura,      // painel
+                    tempoProcesso,
+                    1,              // trocas de ar/hora, fixo por enquanto
+                    1,              // pessoas, fixo
+                    true,           // iluminação
+                    0               // equipamentos extras
+            );
+
+            // 6️⃣ Atualizar labels
+            lblCargaTermica.setText(String.format("%.0f kcal/h | %.2f kW | %.2f TR",
+                    cargaKcal,
+                    LogicaRefrigeracao.kcalhToKW(cargaKcal),
+                    LogicaRefrigeracao.kcalhToTR(cargaKcal)
+            ));
+
+            // 7️⃣ Sugerir equipamento simples (exemplo)
+            if(cargaKcal < 4000){
+                lblEquipamento.setText("Evaporador 0.5 TR");
+            } else if(cargaKcal < 10000){
+                lblEquipamento.setText("Evaporador 1 TR");
+            } else if(cargaKcal < 20000){
+                lblEquipamento.setText("Evaporador 2 TR");
+            } else{
+                lblEquipamento.setText("Evaporador > 2 TR - analisar projeto");
+            }
+
+        } catch (NumberFormatException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erro de formato");
+            alert.setHeaderText(null);
+            alert.setContentText("Por favor, insira valores numéricos válidos.");
+            alert.showAndWait();
         }
     }
 }

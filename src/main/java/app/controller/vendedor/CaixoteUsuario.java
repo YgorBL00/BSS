@@ -3,8 +3,8 @@ package app.controller.vendedor;
 import app.model.Material;
 import app.model.Porta;
 import app.model.Usuario;
+import app.service.CacheSistema;
 import app.service.FormatoCalculator;
-import app.service.MaterialService;
 import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -98,9 +98,7 @@ public class CaixoteUsuario {
 
     private void carregarMateriais() {
 
-        MaterialService service = new MaterialService();
-
-        for (Material m : service.buscarTodos()) {
+        for (Material m : CacheSistema.getMateriais()) {
             materiaisPorCodigo.put(m.getCodigo(), m);
         }
     }

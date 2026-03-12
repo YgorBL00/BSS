@@ -1,7 +1,9 @@
 package app;
 
+import app.service.CacheSistema;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -18,7 +20,6 @@ public class Launcher extends Application {
         );
 
         Parent root = loader.load();
-
         Scene scene = new Scene(root, 1150, 750);
 
         stage.getIcons().add(
@@ -28,12 +29,26 @@ public class Launcher extends Application {
         stage.setTitle("BSS");
         stage.setScene(scene);
 
-        // 🔥 começa invisível
+        // começa invisível
         stage.setOpacity(0);
         stage.show();
 
-        // 🔥 depois mostra quando renderizar
-        Platform.runLater(() -> stage.setOpacity(1));
+        // 🔥 carregar banco em background
+        Task<Void> carregarSistema = new Task<>() {
+            @Override
+            protected Void call() {
+
+                CacheSistema.carregar();
+
+                return null;
+            }
+        };
+
+        carregarSistema.setOnSucceeded(e -> {
+            Platform.runLater(() -> stage.setOpacity(1));
+        });
+
+        new Thread(carregarSistema).start();
     }
 
     public static void main(String[] args) {

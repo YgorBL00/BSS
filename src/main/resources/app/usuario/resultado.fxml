@@ -26,20 +26,30 @@
             <!-- TÍTULO -->
 
             <Label text="Resultado do Orçamento"
-                   style="-fx-font-size:26; -fx-text-fill:#23336f; -fx-font-weight:bold;"/>
+                   style="-fx-font-size:26; -fx-text-fill:#23336f; -fx-font-weight:bold;">
+                <padding>
+                    <Insets bottom="40"/>
+                </padding>
+            </Label>
 
             <!-- INFORMAÇÕES DO CLIENTE -->
 
             <HBox spacing="40" alignment="CENTER_LEFT">
 
-                <Label text="Cliente:"/>
+                <Label text="Cliente:" style="-fx-font-weight: bold;"/>
                 <Label fx:id="lblCliente"/>
 
-                <Label text="Tipo Câmara:"/>
-                <Label fx:id="lblTipo"/>
+                <Label text="Tipo Câmara:" style="-fx-font-weight: bold;"/>
+                <Label fx:id="lblTipo" />
 
-                <Label text="Dimensões:"/>
+                <Label text="Dimensões:" style="-fx-font-weight: bold;"/>
                 <Label fx:id="lblDimensoes"/>
+
+                <Label text="Custo de Material Total:" style="-fx-font-weight: bold;"/>
+                <Label fx:id="lblCusto"/>
+
+                <Label text="Valor de venda:" style="-fx-font-weight: bold;"/>
+                <Label fx:id="lblVenda"/>
 
             </HBox>
 
@@ -69,11 +79,11 @@
 
                         <TableColumn text="Quantidade"
                                      fx:id="colQuantidade"
-                                     prefWidth="20"/>
+                                     prefWidth="100"/>
 
                         <TableColumn text="Unidade"
                                      fx:id="colUnidade"
-                                     prefWidth="50"/>
+                                     prefWidth="70"/>
 
                         <TableColumn fx:id="colValor" text="Valor Unit." prefWidth="120"/>
 

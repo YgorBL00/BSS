@@ -1,6 +1,8 @@
 package app.controller;
 
+import app.Launcher;
 import app.service.AuthService;
+import app.service.CacheSistema;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -46,12 +48,10 @@ public class Login implements Initializable {
         fadeLogo.play();
     }
 
-
-
     @FXML
     private void fazerLogin() {
 
-        String email = emailField.getText().trim();  // remove espaços
+        String email = emailField.getText().trim();
         String senha = senhaField.getText();
 
         if (email.isEmpty() || senha.isEmpty()) {
@@ -60,25 +60,18 @@ public class Login implements Initializable {
         }
 
         AuthService authService = new AuthService();
-
         Usuario usuario = authService.login(email, senha);
 
         if (usuario != null) {
 
-            mensagemErro.setText("");
             salvarEmail(usuario.getEmail());
 
-            System.out.println("Login realizado: " + usuario.getCargo());
-
-            // Verificar cargo
-            if ("ADMIN".equalsIgnoreCase(usuario.getCargo())) {
-
-                abrirTela("/app/admin/painel-admin.fxml", usuario);
-
-            } else if ("VENDEDOR".equalsIgnoreCase(usuario.getCargo())) {
+            try {
 
                 abrirTela("/app/usuario/painel-usuario.fxml", usuario);
 
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
         } else {

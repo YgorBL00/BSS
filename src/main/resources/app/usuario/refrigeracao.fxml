@@ -91,16 +91,16 @@
                                 <Insets top="0" right="60" bottom="0" left="0"/>
                             </BorderPane.margin>
 
-                            <Label text="Temperatura Interna (°C)" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <Label text="Temperatura Interna (°C)" GridPane.rowIndex="0" GridPane.columnIndex="0" />
                             <TextField fx:id="txtTempInterna" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-                            <Label text="Temperatura Ambiente (°C)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <Label text="Temperatura Ambiente (°C)" GridPane.rowIndex="1" GridPane.columnIndex="0" />
                             <ComboBox fx:id="cbTempAmbiente" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-                            <Label text="Temperatura de Entrada" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                            <Label text="Temperatura de Entrada" GridPane.rowIndex="2" GridPane.columnIndex="0" />
                             <TextField fx:id="txtTempEntrada" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
-                            <Label text="Carga Produto (kg/d)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                            <Label text="Carga Produto (kg/d)" GridPane.rowIndex="3" GridPane.columnIndex="0" />
                             <TextField fx:id="txtCargaProduto" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
 
@@ -118,14 +118,14 @@
                                 <Insets top="0" right="60" bottom="0" left="60"/>
                             </BorderPane.margin>
 
-                            <Label text="Variedade" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                            <ComboBox fx:id="cbVariedade" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                            <Label text="Variedade" GridPane.rowIndex="0" GridPane.columnIndex="0" prefWidth="180"/>
+                            <ComboBox fx:id="cbVariedade" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="180"/>
 
-                            <Label text="Produto" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                            <ComboBox fx:id="cbProduto" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                            <Label text="Produto" GridPane.rowIndex="1" GridPane.columnIndex="0" prefWidth="180"/>
+                            <ComboBox fx:id="cbProduto" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="180"/>
 
-                            <Label text="Condutividade Produto" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                            <TextField fx:id="txtCondutividade" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                            <Label text="Calor Produto" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtCondutividade" disable="true" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
                             <Label text="Tempo de Processo (h)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                             <TextField fx:id="txtTempoProcesso" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
@@ -194,7 +194,7 @@
             <HBox spacing="20" alignment="CENTER">
 
                 <Button text="Voltar" fx:id="btnVoltar" onAction="#voltarCaixote"/>
-                <Button text="Calcular Refrigeração" fx:id="btnCalcular"/>
+                <Button text="Calcular Refrigeração" fx:id="btnCalcular" onAction="#calcularRefrigeracao"/>
                 <Button text="Proximo"
                         fx:id="btnOrcamento"
                         onAction="#abrirResultado"/>

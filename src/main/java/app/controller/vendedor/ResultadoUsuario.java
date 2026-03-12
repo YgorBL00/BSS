@@ -14,6 +14,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import app.model.Porta;
+import app.service.CacheSistema;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +28,8 @@ public class ResultadoUsuario {
     // FXML
     // =============================
 
+    @FXML public Label lblCusto;
+    @FXML public Label lblVenda;
     @FXML private Button btnVoltar;
 
     @FXML private Label lblCliente;
@@ -50,7 +56,6 @@ public class ResultadoUsuario {
     private String tipoCamara;
     private String dimensoes;
     private int espessura;
-    private MaterialService materialService = new MaterialService();
 
     // =============================
     // CLASSE DA TABELA
@@ -122,6 +127,40 @@ public class ResultadoUsuario {
         colDescricao.setCellValueFactory(new PropertyValueFactory<>("descricao"));
         colQuantidade.setCellValueFactory(new PropertyValueFactory<>("quantidade"));
         colUnidade.setCellValueFactory(new PropertyValueFactory<>("unidade"));
+        colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
+        colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
+
+        // Formatter brasileiro
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(new Locale("pt", "BR"));
+        symbols.setDecimalSeparator(',');
+        symbols.setGroupingSeparator('.');
+        DecimalFormat df = new DecimalFormat("#,##0.00", symbols);
+
+        colValor.setCellFactory(tc -> new TableCell<ItemTabela, Double>() {
+            @Override
+            protected void updateItem(Double valor, boolean empty) {
+                super.updateItem(valor, empty);
+                if (empty || valor == null) {
+                    setText(null);
+                } else {
+                    setText("R$ " + df.format(valor));
+                }
+            }
+        });
+
+        // Coluna total
+        colTotal.setCellFactory(tc -> new TableCell<ItemTabela, Double>() {
+            @Override
+            protected void updateItem(Double valor, boolean empty) {
+                super.updateItem(valor, empty);
+                if (empty || valor == null) {
+                    setText(null);
+                } else {
+                    setText("R$ " + df.format(valor));
+                }
+            }
+        });
+
         colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
     }
@@ -203,177 +242,171 @@ public class ResultadoUsuario {
 
     private void preencherTabela() {
 
-        if (resultados == null) {
-            return;
-        }
+        if (resultados == null) return;
 
         ObservableList<ItemTabela> lista = FXCollections.observableArrayList();
 
-        double alturaParede = resultados.alturaParedeReal;
-
-        double valorPainel = 180;
-        double valorPerfil = 90;
-        double valorCantoneira = 75;
-        double valorPU = 25;
-        double valorRebite = 0.20;
-        double valorParafuso = 0.30;
+        List<Material> materiais = CacheSistema.getMateriais();
 
         // =========================
-        // PAREDE
+        // VALORES BASE PELO BANCO
         // =========================
+        Material painelMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().startsWith("PAINEL_" + espessura))
+                .findFirst()
+                .orElse(null);
 
-        lista.add(new ItemTabela(
-                "Painel",
-                "Painel " + espessura + "mm 1,15x" + String.format("%.2f", alturaParede) + " - PAREDE",
-                resultados.paineisParede,
-                "un",
-                valorPainel
-        ));
+        Material perfilMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().startsWith("PERFIL_U_" + espessura))
+                .findFirst()
+                .orElse(null);
+
+        Material cantExtMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().contains("CANT_EXT"))
+                .findFirst()
+                .orElse(null);
+
+        Material cantIntMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().contains("CANT_INT"))
+                .findFirst()
+                .orElse(null);
+
+        Material puMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().startsWith("PU_"))
+                .findFirst()
+                .orElse(null);
+
+        Material rebiteMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().startsWith("REBITE"))
+                .findFirst()
+                .orElse(null);
+
+        Material parafusoMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().startsWith("PARAFUSO"))
+                .findFirst()
+                .orElse(null);
 
         // =========================
-        // TETO
+        // PAINÉIS
         // =========================
-
-        lista.add(new ItemTabela(
-                "Painel",
-                "Painel " + espessura + "mm 1,15x" + String.format("%.2f", resultados.alturaTetoReal) + " - TETO",
-                resultados.paineisTeto,
-                "un",
-                valorPainel
-        ));
-
-        // =========================
-        // PISO
-        // =========================
-
-        if (resultados.requerPiso) {
-
+        if (painelMaterial != null) {
+            // Paredes
+            double valorParede = painelMaterial.getValor() * resultados.areaParedesM2;
             lista.add(new ItemTabela(
                     "Painel",
-                    "Painel " + espessura + "mm 1,15x" + String.format("%.2f", resultados.alturaPisoReal) + " - PISO",
-                    resultados.paineisPiso,
-                    "un",
-                    valorPainel
+                    "Painel PIR " + espessura + "mm - PAREDE",
+                    (int) Math.ceil(resultados.areaParedesM2),
+                    "m²",
+                    painelMaterial.getValor()
             ));
-        }
 
-        String perfilUDescricao = "Perfil U 40x" + espessura + "x40x3000";
+            // Teto
+            double valorTeto = painelMaterial.getValor() * resultados.areaTetoM2;
+            lista.add(new ItemTabela(
+                    "Painel",
+                    "Painel PIR " + espessura + "mm - TETO",
+                    (int) Math.ceil(resultados.areaTetoM2),
+                    "m²",
+                    painelMaterial.getValor()
+            ));
 
-        String cantoneiraExternaDescricao;
-
-        switch (espessura) {
-
-            case 50:
-                cantoneiraExternaDescricao = "Cantoneira externa 40x90x3000";
-                break;
-
-            case 70:
-                cantoneiraExternaDescricao = "Cantoneira externa 40x120x3000";
-                break;
-
-            case 100:
-                cantoneiraExternaDescricao = "Cantoneira externa 40x140x3000";
-                break;
-
-            case 120:
-                cantoneiraExternaDescricao = "Cantoneira externa 40x160x3000";
-                break;
-
-            case 150:
-                cantoneiraExternaDescricao = "Cantoneira externa 40x190x3000";
-                break;
-
-            default:
-                cantoneiraExternaDescricao = "Cantoneira externa";
+            // Piso
+            if (resultados.requerPiso) {
+                double valorPiso = painelMaterial.getValor() * resultados.areaPisoM2;
+                lista.add(new ItemTabela(
+                        "Painel",
+                        "Painel PIR " + espessura + "mm - PISO",
+                        (int) Math.ceil(resultados.areaPisoM2),
+                        "m²",
+                        painelMaterial.getValor()
+                ));
+            }
         }
 
         // =========================
         // PERFIL
         // =========================
-
-        lista.add(new ItemTabela(
-                "Perfil",
-                perfilUDescricao,
-                resultados.perfilU,
-                "barra",
-                valorPerfil
-        ));
+        if (perfilMaterial != null) {
+            lista.add(new ItemTabela(
+                    "Perfil",
+                    "Perfil U 40x" + espessura + "x40x3000",
+                    resultados.perfilU,
+                    "barra",
+                    perfilMaterial.getValor()
+            ));
+        }
 
         // =========================
-        // CANTONEIRA EXTERNA
+        // CANTONEIRAS
         // =========================
+        if (cantExtMaterial != null) {
+            lista.add(new ItemTabela(
+                    "Cantoneira",
+                    "Cantoneira externa 40x" + espessura + "x3000",
+                    resultados.cantoneiraExterna,
+                    "barra",
+                    cantExtMaterial.getValor()
+            ));
+        }
 
-        lista.add(new ItemTabela(
-                "Cantoneira",
-                cantoneiraExternaDescricao,
-                resultados.cantoneiraExterna,
-                "barra",
-                valorCantoneira
-        ));
+        if (cantIntMaterial != null) {
+            lista.add(new ItemTabela(
+                    "Cantoneira",
+                    "Cantoneira interna 40x40x3000",
+                    resultados.cantoneiraInterna,
+                    "barra",
+                    cantIntMaterial.getValor()
+            ));
+        }
 
         // =========================
         // PU
         // =========================
-
-        lista.add(new ItemTabela(
-                "PU",
-                "Sachê PU 40 (600ml)",
-                resultados.sachePU,
-                "un",
-                valorPU
-        ));
-
-        // =========================
-        // CANTONEIRA INTERNA
-        // =========================
-
-        lista.add(new ItemTabela(
-                "Cantoneira",
-                "Cantoneira interna 40x40x3000",
-                resultados.cantoneiraInterna,
-                "barra",
-                valorCantoneira
-        ));
+        if (puMaterial != null) {
+            lista.add(new ItemTabela(
+                    "PU",
+                    "Sachê PU 40 (600ml)",
+                    resultados.sachePU,
+                    "un",
+                    puMaterial.getValor()
+            ));
+        }
 
         // =========================
         // FIXAÇÃO
         // =========================
+        if (rebiteMaterial != null) {
+            lista.add(new ItemTabela(
+                    "Fixação",
+                    "Rebite 3.2x12",
+                    resultados.rebites,
+                    "un",
+                    rebiteMaterial.getValor()
+            ));
+        }
 
-        lista.add(new ItemTabela(
-                "Fixação",
-                "Rebite 3.2x12",
-                resultados.rebites,
-                "un",
-                valorRebite
-        ));
-
-        lista.add(new ItemTabela(
-                "Fixação",
-                "Parafuso Nº8",
-                resultados.parafusos,
-                "un",
-                valorParafuso
-        ));
+        if (parafusoMaterial != null) {
+            lista.add(new ItemTabela(
+                    "Fixação",
+                    "Parafuso Nº8 C/ Bucha e Arruela",
+                    resultados.parafusos,
+                    "un",
+                    parafusoMaterial.getValor()
+            ));
+        }
 
         // =========================
-// PORTAS
-// =========================
-
+        // PORTAS
+        // =========================
         if (portas != null && !portas.isEmpty()) {
-
-            List<Material> materiais = materialService.buscarTodos();
-
             for (Porta p : portas) {
-
                 String codigo = gerarCodigoPorta(p);
-
                 Material materialPorta = materiais.stream()
                         .filter(m -> m.getCodigo().equals(codigo))
                         .findFirst()
                         .orElse(null);
 
                 if (materialPorta != null) {
-
                     lista.add(new ItemTabela(
                             "Porta",
                             materialPorta.getNome(),
@@ -381,9 +414,7 @@ public class ResultadoUsuario {
                             materialPorta.getUnidade(),
                             materialPorta.getValor()
                     ));
-
                 } else {
-
                     lista.add(new ItemTabela(
                             "Porta",
                             "⚠ Porta não encontrada: " + codigo,
@@ -396,6 +427,20 @@ public class ResultadoUsuario {
         }
 
         tableMateriais.setItems(lista);
+
+        // =============================
+        // CALCULAR CUSTO E VENDA
+        // =============================
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(new Locale("pt", "BR"));
+        symbols.setDecimalSeparator(',');
+        symbols.setGroupingSeparator('.');
+        DecimalFormat df = new DecimalFormat("#,##0.00", symbols);
+
+        double custoTotal = lista.stream().mapToDouble(ItemTabela::getTotal).sum();
+        lblCusto.setText("R$ " + df.format(custoTotal));
+
+        double venda = custoTotal * 1.12 * 1.30;
+        lblVenda.setText("R$ " + df.format(venda));
     }
 
     // =============================
