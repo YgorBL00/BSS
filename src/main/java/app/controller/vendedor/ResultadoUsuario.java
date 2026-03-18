@@ -1,9 +1,11 @@
 package app.controller.vendedor;
 
 import app.model.Material;
+import app.model.ModeloResultado;
 import app.model.Usuario;
 import app.service.FormatoCalculator;
 import app.service.MaterialService;
+import app.service.ModeloService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -45,6 +47,7 @@ public class ResultadoUsuario {
     @FXML private TableColumn<ItemTabela, Double> colValor;
     @FXML private TableColumn<ItemTabela, Double> colTotal;
 
+
     // =============================
     // VARIÁVEIS
     // =============================
@@ -56,6 +59,17 @@ public class ResultadoUsuario {
     private String tipoCamara;
     private String dimensoes;
     private int espessura;
+    private double cargaNecessaria;
+    private int tempAmbiente;
+    private double tempEvap;
+    private String gas;
+
+    public void setDadosRefrigeracao(double carga, int amb, double evap, String gas) {
+        this.cargaNecessaria = carga;
+        this.tempAmbiente = amb;
+        this.tempEvap = evap;
+        this.gas = gas;
+    }
 
     // =============================
     // CLASSE DA TABELA
@@ -68,6 +82,8 @@ public class ResultadoUsuario {
         private int quantidade;
         private String unidade;
         private double valor;
+
+
 
         public ItemTabela(String item, String descricao, int quantidade, String unidade, double valor) {
             this.item = item;
@@ -441,6 +457,101 @@ public class ResultadoUsuario {
 
         double venda = custoTotal * 1.12 * 1.30;
         lblVenda.setText("R$ " + df.format(venda));
+
+        ModeloService modeloService = new ModeloService();
+
+        ModeloResultado modelo = modeloService.buscarModeloIdeal(
+                cargaNecessaria,
+                tempAmbiente,
+                tempEvap,
+                gas
+        );
+
+        // =========================
+        // REFRIGERAÇÃO (MODELO)
+        // =========================
+
+        // 🔹 EXEMPLO FIXO (depois vira dinâmico)
+        String sucao = modelo.getSucao();
+        String liquido = modelo.getLiquido();
+        double tanque = modelo.getTanque();
+        String gasSelecionado = modelo.getGas();
+
+
+        if (modelo != null) {
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Unidade condensadora " + modelo,
+                    1,
+                    "un",
+                    0 // depois você pode puxar valor do banco
+            ));
+        } else {
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "⚠ Nenhum modelo encontrado",
+                    1,
+                    "un",
+                    0
+            ));
+        }
+
+// 🔹 BUSCAR MATERIAIS
+        Material tuboSucMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().equals("TC-" + sucao))
+                .findFirst()
+                .orElse(null);
+
+        Material tuboLiqMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().equals("TC-" + liquido))
+                .findFirst()
+                .orElse(null);
+
+        Material gasMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().contains(gasSelecionado))
+                .findFirst()
+                .orElse(null);
+
+// =========================
+// TUBO SUCÇÃO
+// =========================
+        if (tuboSucMaterial != null) {
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Linha de sucção " + sucao,
+                    5,
+                    tuboSucMaterial.getUnidade(),
+                    tuboSucMaterial.getValor()
+            ));
+        }
+
+// =========================
+// TUBO LÍQUIDO
+// =========================
+        if (tuboLiqMaterial != null) {
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Linha de líquido " + liquido,
+                    5,
+                    tuboLiqMaterial.getUnidade(),
+                    tuboLiqMaterial.getValor()
+            ));
+        }
+
+// =========================
+// GÁS
+// =========================
+        double kgGas = tanque * 0.8;
+
+        if (gasMaterial != null) {
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Carga de gás " + gas,
+                    (int) Math.ceil(kgGas),
+                    gasMaterial.getUnidade(),
+                    gasMaterial.getValor()
+            ));
+        }
     }
 
     // =============================

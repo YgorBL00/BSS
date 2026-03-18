@@ -1,15 +1,13 @@
 package app.controller.vendedor;
 
-import app.model.LogicaRefrigeracao;
-import app.model.Porta;
-import app.model.Usuario;
+import app.model.*;
 import app.model.LogicaRefrigeracao;
 import app.service.CacheSistema;
 import app.service.FormatoCalculator;
+import app.service.ModeloService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import app.model.Produto;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -48,6 +46,11 @@ public class RefrigeracaoUsuario {
     private List<Porta> portas;
     private List<Produto> todosProdutos;
 
+    private double cargaCalculada;
+    private int ambienteSelecionado;
+    private double evapCalculada;
+    private String gasSelecionado;
+
     public void setEspessura(int espessura) {this.espessura = espessura;if(lblEspessura != null){lblEspessura.setText(espessura + " mm");}}
     public void setUsuario(Usuario usuario) {this.usuario = usuario;}
     public void setResultados(FormatoCalculator.ResultadoFormato resultados) {this.resultados = resultados;}
@@ -80,6 +83,7 @@ public class RefrigeracaoUsuario {
 
         cbVariedade.setOnAction(e -> carregarProdutos());
     }
+
 
     private double getCalorMedio(String categoria){
 
@@ -184,14 +188,22 @@ public class RefrigeracaoUsuario {
             Parent root = loader.load();
 
             ResultadoUsuario controller = loader.getController();
+
+            controller.setDadosRefrigeracao(
+                    cargaCalculada,
+                    ambienteSelecionado,
+                    evapCalculada,
+                    gasSelecionado
+            );
+
             controller.carregarDados(
                     usuario,
                     resultados,
                     espessura,
-                    lblCliente.getText(),   // passa o cliente
-                    lblTipo.getText(),      // passa o tipo de câmara
+                    lblCliente.getText(),
+                    lblTipo.getText(),
                     lblDimensoes.getText(),
-                    portas // passa as dimensões portas
+                    portas
             );
 
             Stage stage = (Stage) btnOrcamento.getScene().getWindow();
@@ -320,16 +332,49 @@ public class RefrigeracaoUsuario {
                     LogicaRefrigeracao.kcalhToTR(cargaKcal)
             ));
 
-            // 7️⃣ Sugerir equipamento simples (exemplo)
-            if(cargaKcal < 4000){
-                lblEquipamento.setText("Evaporador 0.5 TR");
-            } else if(cargaKcal < 10000){
-                lblEquipamento.setText("Evaporador 1 TR");
-            } else if(cargaKcal < 20000){
-                lblEquipamento.setText("Evaporador 2 TR");
-            } else{
-                lblEquipamento.setText("Evaporador > 2 TR - analisar projeto");
+            // 7️⃣ 🔥 DEFINIR TIPO DE CÂMARA
+            boolean congelado = tempInterna <= -10;
+
+// gás automático
+            String gas = congelado ? "R404A" : "R22";
+
+// calcular temperatura de evaporação
+            double tempEvap = congelado
+                    ? tempInterna - 10
+                    : tempInterna - 5;
+
+// arredondar para múltiplos de 5 (-20, -15, etc)
+            tempEvap = Math.round(tempEvap / 5.0) * 5;
+
+// 🔥 BUSCAR MODELO NO BANCO
+            ModeloService service = new ModeloService();
+
+            ModeloResultado modelo = service.buscarModeloIdeal(
+                    cargaKcal,
+                    tempAmbiente,
+                    tempEvap,
+                    gas
+            );
+// 8️⃣ RESULTADO FINAL
+            if (modelo != null) {
+
+                lblEquipamento.setText(
+                        "Modelo: " + modelo.getCodigo() +
+                                "\nEvap: " + tempEvap + "°C | Ambiente: " + tempAmbiente + "°C"
+                );
+
+            } else {
+
+                lblEquipamento.setText(
+                        "⚠️ Equipamento não encontrado\n" +
+                                "Verifique faixa ou aumente capacidade"
+                );
             }
+
+            this.cargaCalculada = cargaKcal;
+            this.ambienteSelecionado = tempAmbiente;
+            this.evapCalculada = tempEvap;
+            this.gasSelecionado = gas;
 
         } catch (NumberFormatException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);

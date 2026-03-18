@@ -181,8 +181,11 @@ public class CaixoteUsuario {
 
             boolean possuiPiso = chkPiso.isSelected();
 
-            var resultados = FormatoCalculator.calcular(C, L, A, E, possuiPiso, portas);
+            boolean isCongelado = rbCongelado.isSelected();
 
+            var resultados = FormatoCalculator.calcular(
+                    C, L, A, E, possuiPiso, portas, isCongelado
+            );
             abrirTelaRefrigeracao(resultados);
 
             //imprimirResultados(resultados);
