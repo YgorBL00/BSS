@@ -3,9 +3,7 @@ package app.controller.vendedor;
 import app.model.Material;
 import app.model.Porta;
 import app.model.Usuario;
-import app.service.CacheSistema;
 import app.service.FormatoCalculator;
-import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,7 +12,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import java.util.*;
 
@@ -37,6 +34,8 @@ public class CaixoteUsuario {
         double getTotal() {
             return quantidade * valor;
         }
+
+
     }
 
     // =============================
@@ -96,12 +95,12 @@ public class CaixoteUsuario {
     // INITIALIZE
     // =============================
 
-    private void carregarMateriais() {
-
-        for (Material m : CacheSistema.getMateriais()) {
-            materiaisPorCodigo.put(m.getCodigo(), m);
-        }
-    }
+//    private void carregarMateriais() {
+//
+//        for (Material m : CacheSistema.getMateriais()) {
+//            materiaisPorCodigo.put(m.getCodigo(), m);
+//        }
+//    }
 
     @FXML
     public void initialize() {
@@ -115,7 +114,9 @@ public class CaixoteUsuario {
         spCantoSemAcabamento.getItems().addAll("Não", "Sim");
         spCantoSemAcabamento.setValue("Não");
 
-        carregarMateriais(); // <<< AQUI
+        rbResfriado.setSelected(true);
+
+        //carregarMateriais(); // <<< AQUI
 
         spCantoSemAcabamento.valueProperty().addListener((obs, oldVal, newVal) -> {
 
@@ -176,20 +177,16 @@ public class CaixoteUsuario {
             double C = Double.parseDouble(txtComprimento.getText().replace(",", "."));
             double L = Double.parseDouble(txtLargura.getText().replace(",", "."));
             double A = Double.parseDouble(txtAltura.getText().replace(",", "."));
+
             double E = cbEspessura.getValue() / 1000.0;
+
             boolean possuiPiso = chkPiso.isSelected();
-            boolean congelado = rbCongelado.isSelected();
+
+            boolean isCongelado = rbCongelado.isSelected();
 
             var resultados = FormatoCalculator.calcular(
-                    C,
-                    L,
-                    A,
-                    E,
-                    possuiPiso,
-                    portas,
-                    congelado
+                    C, L, A, E, possuiPiso, portas, isCongelado
             );
-
             abrirTelaRefrigeracao(resultados);
 
             //imprimirResultados(resultados);
@@ -704,18 +701,23 @@ public class CaixoteUsuario {
 
             RefrigeracaoUsuario controller = loader.getController();
 
+
+
             controller.setUsuario(usuario);
             controller.setResultados(resultados);
             controller.setEspessura(cbEspessura.getValue());
             controller.setPortas(portas);
 
             controller.setCliente(txtCliente.getText());
-            controller.setTipoCamara(rbCongelado.isSelected() ? "CONGELADOS" : "RESFRIADOS");
             controller.setDimensoes(
                     txtComprimento.getText() + " x " +
                             txtLargura.getText() + " x " +
                             txtAltura.getText()
             );
+
+            String tipoCamara = rbCongelado.isSelected() ? "CONGELADOS" : "RESFRIADOS";
+
+            controller.setTipoCamara(tipoCamara);
 
             Stage stage = (Stage) btnAvancar.getScene().getWindow();
             stage.setScene(new Scene(root, 1150, 750));

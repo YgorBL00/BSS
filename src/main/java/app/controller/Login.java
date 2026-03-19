@@ -1,8 +1,6 @@
 package app.controller;
 
-import app.Launcher;
 import app.service.AuthService;
-import app.service.CacheSistema;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,7 +8,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import app.dao.UsuarioDAO;
 import app.model.Usuario;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;

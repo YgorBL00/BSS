@@ -1,6 +1,5 @@
 package app;
 
-import app.service.CacheSistema;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -38,7 +37,7 @@ public class Launcher extends Application {
             @Override
             protected Void call() {
 
-                CacheSistema.carregar();
+                //CacheSistema.carregar();
 
                 return null;
             }

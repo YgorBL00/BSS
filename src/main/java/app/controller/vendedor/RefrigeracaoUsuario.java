@@ -1,15 +1,11 @@
 package app.controller.vendedor;
 
+import app.model.*;
 import app.model.LogicaRefrigeracao;
-import app.model.Porta;
-import app.model.Usuario;
-import app.model.LogicaRefrigeracao;
-import app.service.CacheSistema;
 import app.service.FormatoCalculator;
-import javafx.event.ActionEvent;
+import app.service.ProdutoService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import app.model.Produto;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -21,26 +17,44 @@ import java.util.List;
 
 public class RefrigeracaoUsuario {
 
-    @FXML public Button btnOrcamento;
-    @FXML public TextField txtTempInterna;
-    @FXML public TextField txtTempEntrada;
-    @FXML public TextField txtCargaProduto;
-    @FXML public TextField txtDistQuadroUC;
-    @FXML public TextField txtDistQuadroEU;
-    @FXML public TextField txtDistUEUC;
-    @FXML public TextField txtAlturaInfra;
+    @FXML
+    public Button btnOrcamento;
+    @FXML
+    public TextField txtTempInterna;
+    @FXML
+    public TextField txtTempEntrada;
+    @FXML
+    public TextField txtCargaProduto;
+    @FXML
+    public TextField txtDistQuadroUC;
+    @FXML
+    public TextField txtDistQuadroEU;
+    @FXML
+    public TextField txtDistUEUC;
+    @FXML
+    public TextField txtAlturaInfra;
     public Label lblCargaTermica;
     public Label lblEquipamento;
-    @FXML private Label lblCliente;
-    @FXML private Label lblTipo;
-    @FXML private Label lblDimensoes;
-    @FXML private Label lblEspessura;
-    @FXML private Label lblAreaPorta;
-    @FXML private ComboBox<String> cbVariedade;
-    @FXML private ComboBox<String> cbProduto;
-    @FXML private ComboBox<Integer> cbTempAmbiente;
-    @FXML private TextField txtTempoProcesso;
-    @FXML private TextField txtCondutividade;
+    @FXML
+    private Label lblCliente;
+    @FXML
+    private Label lblTipo;
+    @FXML
+    private Label lblDimensoes;
+    @FXML
+    private Label lblEspessura;
+    @FXML
+    private Label lblAreaPorta;
+    @FXML
+    private ComboBox<String> cbVariedade;
+    @FXML
+    private ComboBox<String> cbProduto;
+    @FXML
+    private ComboBox<Integer> cbTempAmbiente;
+    @FXML
+    private TextField txtTempoProcesso;
+    @FXML
+    private TextField txtCondutividade;
 
     private Usuario usuario;
     private FormatoCalculator.ResultadoFormato resultados;
@@ -48,12 +62,43 @@ public class RefrigeracaoUsuario {
     private List<Porta> portas;
     private List<Produto> todosProdutos;
 
-    public void setEspessura(int espessura) {this.espessura = espessura;if(lblEspessura != null){lblEspessura.setText(espessura + " mm");}}
-    public void setUsuario(Usuario usuario) {this.usuario = usuario;}
-    public void setResultados(FormatoCalculator.ResultadoFormato resultados) {this.resultados = resultados;}
-    public void setCliente(String cliente) {lblCliente.setText(cliente);}
-    public void setTipoCamara(String tipo) {lblTipo.setText(tipo);}
-    public void setDimensoes(String dim) {lblDimensoes.setText(dim);}
+
+    private double cargaCalculada;
+    private int ambienteSelecionado;
+    private double evapCalculada;
+    private String gasSelecionado;
+    private String tipoCamara;
+
+    public void setEspessura(int espessura) {
+        this.espessura = espessura;
+        if (lblEspessura != null) {
+            lblEspessura.setText(espessura + " mm");
+        }
+    }
+
+    public void setTipoCamara(String tipoCamara) {
+        this.tipoCamara = tipoCamara;
+        if (lblTipo != null) {
+            lblTipo.setText(tipoCamara);
+        }
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public void setResultados(FormatoCalculator.ResultadoFormato resultados) {
+        this.resultados = resultados;
+    }
+
+    public void setCliente(String cliente) {
+        lblCliente.setText(cliente);
+    }
+
+    public void setDimensoes(String dim) {
+        lblDimensoes.setText(dim);
+    }
+
 
     @FXML
     public void initialize() {
@@ -75,15 +120,20 @@ public class RefrigeracaoUsuario {
                 "Laticinios"
         ));
 
-        // agora usa memória
-        todosProdutos = CacheSistema.getProdutos();
+        // Inicializa a lista de produtos
+        ProdutoService service = new ProdutoService();
+        todosProdutos = service.buscarTodos(); // <--- aqui
 
         cbVariedade.setOnAction(e -> carregarProdutos());
+
+        // Carregar produtos inicialmente
+        carregarProdutos();
     }
 
-    private double getCalorMedio(String categoria){
 
-        switch (categoria){
+    private double getCalorMedio(String categoria) {
+
+        switch (categoria) {
 
             case "carne":
                 return 0.80;
@@ -157,9 +207,9 @@ public class RefrigeracaoUsuario {
 
             String nome = cbProduto.getValue();
 
-            for(Produto p : todosProdutos){
+            for (Produto p : todosProdutos) {
 
-                if(p.getNome().equals(nome)){
+                if (p.getNome().equals(nome)) {
 
                     double calor = getCalorMedio(p.getCategoria());
 
@@ -184,14 +234,22 @@ public class RefrigeracaoUsuario {
             Parent root = loader.load();
 
             ResultadoUsuario controller = loader.getController();
+
+            controller.setDadosRefrigeracao(
+                    cargaCalculada,
+                    ambienteSelecionado,
+                    evapCalculada,
+                    gasSelecionado
+            );
+
             controller.carregarDados(
                     usuario,
                     resultados,
                     espessura,
-                    lblCliente.getText(),   // passa o cliente
-                    lblTipo.getText(),      // passa o tipo de câmara
+                    lblCliente.getText(),
+                    lblTipo.getText(),
                     lblDimensoes.getText(),
-                    portas // passa as dimensões portas
+                    portas
             );
 
             Stage stage = (Stage) btnOrcamento.getScene().getWindow();
@@ -230,11 +288,11 @@ public class RefrigeracaoUsuario {
 
         double area = 0;
 
-        if(portas == null || portas.isEmpty()){
+        if (portas == null || portas.isEmpty()) {
             area = 1.44;
-        }else{
+        } else {
 
-            for(Porta p : portas){
+            for (Porta p : portas) {
 
                 String tamanho = p.getTamanho()
                         .replace(",", ".")
@@ -249,7 +307,9 @@ public class RefrigeracaoUsuario {
             }
         }
 
-        if(lblAreaPorta != null){
+        System.out.println("TipoCamara: " + tipoCamara);
+
+        if (lblAreaPorta != null) {
             lblAreaPorta.setText(String.format("%.2f m²", area));
         }
     }
@@ -258,7 +318,7 @@ public class RefrigeracaoUsuario {
     public void calcularRefrigeracao() {
 
         // 1️⃣ Verificação de campos obrigatórios
-        if(txtTempInterna.getText().isEmpty() ||
+        if (txtTempInterna.getText().isEmpty() ||
                 txtTempEntrada.getText().isEmpty() ||
                 txtCargaProduto.getText().isEmpty() ||
                 txtTempoProcesso.getText().isEmpty() ||
@@ -272,6 +332,8 @@ public class RefrigeracaoUsuario {
             alert.setHeaderText(null);
             alert.setContentText("Por favor, preencha todos os campos antes de calcular.");
             alert.showAndWait();
+
+
             return;
         }
 
@@ -320,16 +382,27 @@ public class RefrigeracaoUsuario {
                     LogicaRefrigeracao.kcalhToTR(cargaKcal)
             ));
 
-            // 7️⃣ Sugerir equipamento simples (exemplo)
-            if(cargaKcal < 4000){
-                lblEquipamento.setText("Evaporador 0.5 TR");
-            } else if(cargaKcal < 10000){
-                lblEquipamento.setText("Evaporador 1 TR");
-            } else if(cargaKcal < 20000){
-                lblEquipamento.setText("Evaporador 2 TR");
-            } else{
-                lblEquipamento.setText("Evaporador > 2 TR - analisar projeto");
-            }
+            boolean congelado = tipoCamara != null && tipoCamara.equalsIgnoreCase("CONGELADOS");
+
+            // gás
+            String gas = congelado ? "R404A" : "R22";
+
+            // sufixo
+            String sufixo = congelado ? "Z" : "J";
+
+            // temperatura de evaporação
+            double tempEvap = congelado
+                    ? tempInterna - 10
+                    : tempInterna - 5;
+
+            // arredondamento
+            tempEvap = Math.round(tempEvap / 5.0) * 5;
+
+
+            this.cargaCalculada = cargaKcal;
+            this.ambienteSelecionado = tempAmbiente;
+            this.evapCalculada = tempEvap;
+            this.gasSelecionado = gas;
 
         } catch (NumberFormatException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);

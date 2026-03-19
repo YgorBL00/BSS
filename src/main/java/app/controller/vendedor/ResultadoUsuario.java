@@ -14,7 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import app.model.Porta;
-import app.service.CacheSistema;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -45,6 +45,7 @@ public class ResultadoUsuario {
     @FXML private TableColumn<ItemTabela, Double> colValor;
     @FXML private TableColumn<ItemTabela, Double> colTotal;
 
+
     // =============================
     // VARIÁVEIS
     // =============================
@@ -56,6 +57,20 @@ public class ResultadoUsuario {
     private String tipoCamara;
     private String dimensoes;
     private int espessura;
+    private double cargaNecessaria;
+    private int tempAmbiente;
+    private double tempEvap;
+    private String gas;
+    private String sufixo;
+
+
+    public void setDadosRefrigeracao(double carga, int amb, double evap, String gas) {
+        this.cargaNecessaria = carga;
+        this.tempAmbiente = amb;
+        this.tempEvap = evap;
+        this.gas = gas;
+        this.sufixo = sufixo;
+    }
 
     // =============================
     // CLASSE DA TABELA
@@ -68,6 +83,8 @@ public class ResultadoUsuario {
         private int quantidade;
         private String unidade;
         private double valor;
+
+
 
         public ItemTabela(String item, String descricao, int quantidade, String unidade, double valor) {
             this.item = item;
@@ -246,7 +263,8 @@ public class ResultadoUsuario {
 
         ObservableList<ItemTabela> lista = FXCollections.observableArrayList();
 
-        List<Material> materiais = CacheSistema.getMateriais();
+        MaterialService materialService = new MaterialService();
+        List<Material> materiais = materialService.buscarTodos();
 
         // =========================
         // VALORES BASE PELO BANCO
@@ -283,11 +301,6 @@ public class ResultadoUsuario {
 
         Material parafusoMaterial = materiais.stream()
                 .filter(m -> m.getCodigo().startsWith("PARAFUSO"))
-                .findFirst()
-                .orElse(null);
-
-        Material espumaMaterial = materiais.stream()
-                .filter(m -> m.getCodigo().startsWith("ESPUMA"))
                 .findFirst()
                 .orElse(null);
 
@@ -378,23 +391,6 @@ public class ResultadoUsuario {
         }
 
         // =========================
-        // ESPUMA EXPANSIVA
-        // =========================
-        if (espumaMaterial != null && resultados.metrosEspumaExpansiva > 0) {
-
-            int quantidadeEspuma = (int) Math.ceil(resultados.metrosEspumaExpansiva / 10);
-            // exemplo: 1 tubo rende ~10m (ajuste se quiser)
-
-            lista.add(new ItemTabela(
-                    "Espuma",
-                    "Espuma expansiva PU",
-                    quantidadeEspuma,
-                    "un",
-                    espumaMaterial.getValor()
-            ));
-        }
-
-        // =========================
         // FIXAÇÃO
         // =========================
         if (rebiteMaterial != null) {
@@ -463,6 +459,7 @@ public class ResultadoUsuario {
 
         double venda = custoTotal * 1.12 * 1.30;
         lblVenda.setText("R$ " + df.format(venda));
+
     }
 
     // =============================

@@ -204,11 +204,13 @@ public class FormatoCalculator {
         r.metrosJuntaPU = metrosVerticais + juntaTeto + juntaPiso;
         r.sachePU = (int) Math.ceil(r.metrosJuntaPU / r.rendimentoPU) + 1;
 
-        // =============================
-        // ESPUMA EXPANSIVA
-        // =============================
-        if (congelado) {
-            r.metrosEspumaExpansiva = metrosVerticais + juntaTeto + juntaPiso;
+        if(portas != null && portas.size() > 0) {
+            // exemplo: tipo congelado — aqui você pode passar uma flag ou verificar pelo tipo
+            boolean tipoCongelado = true; // você pode passar como parâmetro do método
+            if(tipoCongelado){
+                r.metrosEspumaExpansiva = metrosVerticais + juntaTeto + juntaPiso; // mesma lógica do PU
+                // sem +1 e sem arredondamento por enquanto
+            }
         }
 
         // =============================
