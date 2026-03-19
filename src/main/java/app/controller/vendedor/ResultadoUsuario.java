@@ -286,6 +286,11 @@ public class ResultadoUsuario {
                 .findFirst()
                 .orElse(null);
 
+        Material espumaMaterial = materiais.stream()
+                .filter(m -> m.getCodigo().startsWith("ESPUMA"))
+                .findFirst()
+                .orElse(null);
+
         // =========================
         // PAINÉIS
         // =========================
@@ -369,6 +374,23 @@ public class ResultadoUsuario {
                     resultados.sachePU,
                     "un",
                     puMaterial.getValor()
+            ));
+        }
+
+        // =========================
+        // ESPUMA EXPANSIVA
+        // =========================
+        if (espumaMaterial != null && resultados.metrosEspumaExpansiva > 0) {
+
+            int quantidadeEspuma = (int) Math.ceil(resultados.metrosEspumaExpansiva / 10);
+            // exemplo: 1 tubo rende ~10m (ajuste se quiser)
+
+            lista.add(new ItemTabela(
+                    "Espuma",
+                    "Espuma expansiva PU",
+                    quantidadeEspuma,
+                    "un",
+                    espumaMaterial.getValor()
             ));
         }
 

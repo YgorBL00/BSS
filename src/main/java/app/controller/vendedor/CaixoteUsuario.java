@@ -176,12 +176,19 @@ public class CaixoteUsuario {
             double C = Double.parseDouble(txtComprimento.getText().replace(",", "."));
             double L = Double.parseDouble(txtLargura.getText().replace(",", "."));
             double A = Double.parseDouble(txtAltura.getText().replace(",", "."));
-
             double E = cbEspessura.getValue() / 1000.0;
-
             boolean possuiPiso = chkPiso.isSelected();
+            boolean congelado = rbCongelado.isSelected();
 
-            var resultados = FormatoCalculator.calcular(C, L, A, E, possuiPiso, portas);
+            var resultados = FormatoCalculator.calcular(
+                    C,
+                    L,
+                    A,
+                    E,
+                    possuiPiso,
+                    portas,
+                    congelado
+            );
 
             abrirTelaRefrigeracao(resultados);
 
