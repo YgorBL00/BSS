@@ -1,6 +1,7 @@
 package app.service;
 
 import app.database.DatabaseConnection;
+import app.model.Equipamento;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -55,6 +56,54 @@ public class UCService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Equipamento buscarEquipamento(double cargaNecessaria,
+                                         int tempAmbiente,
+                                         int tempEvap,
+                                         String gas) {
+
+        String tabelaUC = gas.equals("R404A") ? "UC_R404A" : "UC_R22";
+        String tabelaCarga = gas.equals("R404A") ? "carga_termica_r404a" : "carga_termica_r22";
+
+        String sql = String.format("""
+        SELECT u.modelo, c.carga_kcal, c.temp_evaporacao
+        FROM %s u
+        JOIN %s c ON u.modelo = c.modelo
+        WHERE c.temp_ambiente = ?
+        ORDER BY 
+            ABS(c.temp_evaporacao - ?) ASC,
+            CASE 
+                WHEN c.carga_kcal >= ? THEN 0 
+                ELSE 1 
+            END,
+            ABS(c.carga_kcal - ?) ASC
+        LIMIT 1
+    """, tabelaUC, tabelaCarga);
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, tempAmbiente);
+            stmt.setInt(2, tempEvap);
+            stmt.setDouble(3, cargaNecessaria);
+            stmt.setDouble(4, cargaNecessaria);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new Equipamento(
+                        rs.getString("modelo"),
+                        gas,
+                        rs.getDouble("carga_kcal")
+                );
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     // MAIN para teste

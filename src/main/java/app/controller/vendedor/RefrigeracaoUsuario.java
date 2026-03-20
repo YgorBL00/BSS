@@ -4,6 +4,7 @@ import app.model.*;
 import app.model.LogicaRefrigeracao;
 import app.service.FormatoCalculator;
 import app.service.ProdutoService;
+import app.service.UCService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -68,6 +69,7 @@ public class RefrigeracaoUsuario {
     private double evapCalculada;
     private String gasSelecionado;
     private String tipoCamara;
+    private Equipamento equipamentoSelecionado;
 
     public void setEspessura(int espessura) {
         this.espessura = espessura;
@@ -77,8 +79,12 @@ public class RefrigeracaoUsuario {
     }
 
     public void setTipoCamara(String tipoCamara) {
-        this.tipoCamara = tipoCamara;
-        if (lblTipo != null) {
+        this.tipoCamara = tipoCamara;   // guarda o valor
+        atualizarLabelTipo();
+    }
+
+    private void atualizarLabelTipo() {
+        if (lblTipo != null && tipoCamara != null) {
             lblTipo.setText(tipoCamara);
         }
     }
@@ -99,18 +105,14 @@ public class RefrigeracaoUsuario {
         lblDimensoes.setText(dim);
     }
 
-
     @FXML
     public void initialize() {
 
-        cbTempAmbiente.setItems(FXCollections.observableArrayList(
-                32, 35, 38, 43
-        ));
+        // 1️⃣ Inicializa ComboBox de temperatura ambiente
+        cbTempAmbiente.setItems(FXCollections.observableArrayList(32, 35, 38, 43));
+        cbTempAmbiente.setValue(32); // valor padrão
 
-        cbTempAmbiente.setValue(32); // padrão
-
-        txtTempoProcesso.setText("24");
-
+        // 2️⃣ Inicializa ComboBox de variedades
         cbVariedade.setItems(FXCollections.observableArrayList(
                 "Todos",
                 "Carnes",
@@ -120,16 +122,20 @@ public class RefrigeracaoUsuario {
                 "Laticinios"
         ));
 
-        // Inicializa a lista de produtos
+        // 3️⃣ Inicializa campo de tempo de processo
+        txtTempoProcesso.setText("24");
+
+        // 4️⃣ Inicializa a lista de produtos
         ProdutoService service = new ProdutoService();
-        todosProdutos = service.buscarTodos(); // <--- aqui
+        todosProdutos = service.buscarTodos(); // carrega todos os produtos do banco
 
+        // 5️⃣ Configura ação do ComboBox de variedade
         cbVariedade.setOnAction(e -> carregarProdutos());
-
-        // Carregar produtos inicialmente
+        // 6️⃣ Carrega produtos inicialmente
         carregarProdutos();
-    }
 
+        // ⚠️ Não tenta atualizar lblTipo aqui, pois tipoCamara ainda não foi setado
+    }
 
     private double getCalorMedio(String categoria) {
 
@@ -252,6 +258,9 @@ public class RefrigeracaoUsuario {
                     portas
             );
 
+            controller.setTipoCamara(tipoCamara);
+            controller.setEquipamento(equipamentoSelecionado);
+
             Stage stage = (Stage) btnOrcamento.getScene().getWindow();
             stage.setScene(new Scene(root, 1150, 750));
 
@@ -265,14 +274,17 @@ public class RefrigeracaoUsuario {
 
         try {
 
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/app/usuario/caixote.fxml")
-            );
-
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/app/usuario/refrigeracao.fxml"));
             Parent root = loader.load();
 
-            CaixoteUsuario controller = loader.getController();
+            RefrigeracaoUsuario controller = loader.getController();
+            controller.setTipoCamara("Frigorífico");
             controller.setUsuario(usuario);
+            controller.setResultados(resultados);
+            controller.setCliente("Cliente XYZ");
+            controller.setDimensoes("2x3x2 m");
+            controller.setPortas(portas);
+
 
             Stage stage = (Stage) btnOrcamento.getScene().getWindow();
             stage.setScene(new Scene(root, 1150, 750));
@@ -307,7 +319,7 @@ public class RefrigeracaoUsuario {
             }
         }
 
-        System.out.println("TipoCamara: " + tipoCamara);
+
 
         if (lblAreaPorta != null) {
             lblAreaPorta.setText(String.format("%.2f m²", area));
@@ -382,27 +394,47 @@ public class RefrigeracaoUsuario {
                     LogicaRefrigeracao.kcalhToTR(cargaKcal)
             ));
 
-            boolean congelado = tipoCamara != null && tipoCamara.equalsIgnoreCase("CONGELADOS");
-
-            // gás
-            String gas = congelado ? "R404A" : "R22";
-
-            // sufixo
-            String sufixo = congelado ? "Z" : "J";
-
-            // temperatura de evaporação
-            double tempEvap = congelado
-                    ? tempInterna - 10
-                    : tempInterna - 5;
-
-            // arredondamento
-            tempEvap = Math.round(tempEvap / 5.0) * 5;
-
-
             this.cargaCalculada = cargaKcal;
             this.ambienteSelecionado = tempAmbiente;
-            this.evapCalculada = tempEvap;
-            this.gasSelecionado = gas;
+
+            String gas = definirGas(this.tipoCamara);
+
+            UCService service = new UCService();
+
+            double cargaComSeguranca = cargaKcal * 1.10; // +10%
+
+            // 🔹 cálculo correto da evaporação
+            int tempEvap = calcularTempEvap(tempInterna, this.tipoCamara);
+
+            // 🔹 busca equipamento
+            Equipamento eq = service.buscarEquipamento(
+                    cargaComSeguranca,
+                    tempAmbiente,
+                    tempEvap,
+                    gas
+            );
+
+
+            if (eq != null) {
+
+                lblEquipamento.setText(
+                        "Modelo: " + eq.getModelo() +
+                                " | Gás: " + eq.getGas() +
+                                " | Capacidade: " + String.format("%.0f kcal/h", eq.getCarga())
+                );
+
+                this.gasSelecionado = eq.getGas();
+                this.evapCalculada = tempEvap;
+
+            } else {
+
+                lblEquipamento.setText(
+                        "⚠ Equipamento não encontrado\n" +
+                                "Carga: " + String.format("%.0f kcal/h", cargaKcal) +
+                                " | Evap: " + tempEvap + "°C"
+                );
+            }
+
 
         } catch (NumberFormatException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -412,4 +444,39 @@ public class RefrigeracaoUsuario {
             alert.showAndWait();
         }
     }
+
+    private int calcularTempEvap(double tempInterna, String tipoCamara) {
+
+        double delta;
+
+        if ("CONGELADOS".equals(tipoCamara)) {
+            delta = 10; // pode ajustar pra 12 depois
+        } else {
+            delta = 7;
+        }
+
+        int evap = (int) Math.round(tempInterna - delta);
+
+        int[] faixas = {-20, -15, -10, -5, 0, 5, 10};
+
+        int maisProximo = faixas[0];
+
+        for (int f : faixas) {
+            if (Math.abs(evap - f) < Math.abs(maisProximo - evap)) {
+                maisProximo = f;
+            }
+        }
+
+        return maisProximo;
+    }
+
+    private String definirGas(String tipoCamara) {
+
+        if ("CONGELADOS".equals(tipoCamara)) {
+            return "R404A";
+        } else {
+            return "R22";
+        }
+    }
+
 }

@@ -719,6 +719,8 @@ public class CaixoteUsuario {
 
             controller.setTipoCamara(tipoCamara);
 
+            System.out.println(tipoCamara);
+
             Stage stage = (Stage) btnAvancar.getScene().getWindow();
             stage.setScene(new Scene(root, 1150, 750));
 

@@ -1,5 +1,6 @@
 package app.controller.vendedor;
 
+import app.model.Equipamento;
 import app.model.Material;
 import app.model.Usuario;
 import app.service.FormatoCalculator;
@@ -61,7 +62,7 @@ public class ResultadoUsuario {
     private int tempAmbiente;
     private double tempEvap;
     private String gas;
-    private String sufixo;
+    private Equipamento equipamento;
 
 
     public void setDadosRefrigeracao(double carga, int amb, double evap, String gas) {
@@ -69,8 +70,11 @@ public class ResultadoUsuario {
         this.tempAmbiente = amb;
         this.tempEvap = evap;
         this.gas = gas;
-        this.sufixo = sufixo;
     }
+
+    public void setEquipamento(Equipamento equipamentoSelecionado) {
+    }
+
 
     // =============================
     // CLASSE DA TABELA
@@ -83,7 +87,8 @@ public class ResultadoUsuario {
         private int quantidade;
         private String unidade;
         private double valor;
-
+        private Equipamento equipamentoSelecionado;
+        private Equipamento equipamento;
 
 
         public ItemTabela(String item, String descricao, int quantidade, String unidade, double valor) {
@@ -94,16 +99,17 @@ public class ResultadoUsuario {
             this.valor = valor;
         }
 
+        public void setEquipamento(Equipamento equipamento) {this.equipamento = equipamento;}
         public String getItem() { return item; }
         public String getDescricao() { return descricao; }
         public int getQuantidade() { return quantidade; }
         public String getUnidade() { return unidade; }
         public double getValor() { return valor; }
-
         public double getTotal() {
             return valor * quantidade;
-        }
-    }
+        }}
+
+
 
     public void carregarDados(
             Usuario usuario,
@@ -441,6 +447,18 @@ public class ResultadoUsuario {
                             0
                     ));
                 }
+            }
+            // =========================
+            // EQUIPAMENTO (UNIDADE CONDENSADORA)
+            // =========================
+            if (equipamento != null) {
+                lista.add(new ItemTabela(
+                        "Refrigeração",
+                        "Unidade Condensadora " + equipamento.getModelo(),
+                        1,
+                        "un",
+                        0// precisa ter esse campo no banco
+                ));
             }
         }
 
