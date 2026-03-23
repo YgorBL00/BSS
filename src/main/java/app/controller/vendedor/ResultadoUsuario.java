@@ -1,8 +1,6 @@
 package app.controller.vendedor;
 
-import app.model.Equipamento;
-import app.model.Material;
-import app.model.Usuario;
+import app.model.*;
 import app.service.FormatoCalculator;
 import app.service.MaterialService;
 import javafx.collections.FXCollections;
@@ -15,16 +13,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
-import app.model.Porta;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Locale;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import javafx.stage.FileChooser;
 import java.io.File;
+import java.util.stream.Collectors;
 
 
 public class ResultadoUsuario {
@@ -35,7 +31,7 @@ public class ResultadoUsuario {
 
     @FXML public Label lblCusto;
     @FXML public Label lblVenda;
-    public Button btnExportar;
+    @FXML public Button btnExportar;
     @FXML private Button btnVoltar;
 
     @FXML private Label lblCliente;
@@ -69,6 +65,9 @@ public class ResultadoUsuario {
     private double tempEvap;
     private String gas;
     private Equipamento equipamento;
+    private double distQuadroUC;
+    private double distQuadroEU;
+    private double distUEUC;
 
 
 
@@ -84,6 +83,12 @@ public class ResultadoUsuario {
     public void setEquipamento(Equipamento equipamentoSelecionado) {
         this.equipamento = equipamentoSelecionado;
         preencherTabela(); // ✅ força atualizar tabela
+    }
+
+    public void setDistancias(double quadroUC, double quadroEU, double ueuc) {
+        this.distQuadroUC = quadroUC;
+        this.distQuadroEU = quadroEU;
+        this.distUEUC = ueuc;
     }
 
     @FXML
@@ -202,9 +207,8 @@ public class ResultadoUsuario {
         public int getQuantidade() { return quantidade; }
         public String getUnidade() { return unidade; }
         public double getValor() { return valor; }
-        public double getTotal() {
-            return valor * quantidade;
-        }}
+        public double getTotal() {return valor * quantidade;}
+    }
 
 
 
@@ -369,6 +373,9 @@ public class ResultadoUsuario {
 
         MaterialService materialService = new MaterialService();
         List<Material> materiais = materialService.buscarTodos();
+
+        Map<String, Material> mapaMateriais = materiais.stream()
+                .collect(Collectors.toMap(Material::getCodigo, m -> m));
 
         // =========================
         // VALORES BASE PELO BANCO
@@ -567,31 +574,107 @@ public class ResultadoUsuario {
             // 🔹 GÁS (70% do tanque)
             double kgGas = equipamento.getTanqueLiquido() * 0.7;
 
+            Material gasMaterial = mapaMateriais.get("GAS-" + equipamento.getGas());
+
             lista.add(new ItemTabela(
                     "Refrigeração",
                     "Gás " + equipamento.getGas(),
                     (int) Math.ceil(kgGas),
                     "kg",
-                    0
+                    gasMaterial != null ? gasMaterial.getValor() : 0
             ));
 
-            // 🔹 LINHA DE LÍQUIDO (5m padrão)
+            // 🔹 LINHA DE LÍQUIDO → quadro → UC
+            String codLiquido = "TC-" + equipamento.getLinhaLiquido();
+            Material tuboLiquido = mapaMateriais.get(codLiquido);
+
             lista.add(new ItemTabela(
                     "Refrigeração",
-                    "Tubulução de Cobre Flexivel " + equipamento.getLinhaLiquido(),
-                    5,
+                    "Tubulação de Cobre Flexível " + equipamento.getLinhaLiquido(),
+                    (int) Math.ceil(distQuadroUC), // agora usa somente distQuadroUC
                     "m",
-                    0
+                    tuboLiquido != null ? tuboLiquido.getValor() : 0
             ));
 
-            // 🔹 LINHA DE SUCÇÃO (5m padrão)
+            // 🔹 LINHA DE SUCÇÃO → quadro → EU
+            String codSuccao = "TC-" + equipamento.getLinhaSucção();
+            Material tuboSuccao = mapaMateriais.get(codSuccao);
+
             lista.add(new ItemTabela(
                     "Refrigeração",
-                    "Tubulução de Cobre Flexivel " + equipamento.getLinhaSucção(),
-                    5,
+                    "Tubulação de Cobre Flexível " + equipamento.getLinhaSucção(),
+                    (int) Math.ceil(distQuadroEU), // agora usa somente distQuadroEU
                     "m",
-                    0
+                    tuboSuccao != null ? tuboSuccao.getValor() : 0
             ));
+
+            // =========================
+            // CABOS ELÉTRICOS
+            // =========================
+
+            Map<String, Integer> cabos = new HashMap<>();
+
+            double distQuadroUC = this.distQuadroUC;
+            double distQuadroEU = this.distQuadroEU;
+            double distUEUC = this.distUEUC;
+
+            // cria lógica elétrica baseada no equipamento
+            Eletrica eletrica = new Eletrica(
+                    equipamento.getModelo(),
+                    true // ou pegar da tensão depois
+            );
+
+            // Compressor
+            adicionarCabo(
+                    cabos,
+                    eletrica.getPernasCompressor(),
+                    eletrica.getBitolaCompressor(),
+                    distQuadroUC
+            );
+            adicionarCabo(
+                    cabos,
+                    eletrica.getPernasPressostato(),
+                    eletrica.getBitolaPressostato(),
+                    distQuadroUC
+            );
+            adicionarCabo(
+                    cabos,
+                    eletrica.getPernasSensor(),
+                    eletrica.getBitolaSensor(),
+                    distUEUC
+            );
+            adicionarCabo(
+                    cabos,
+                    eletrica.getPernasMotoventilador(),
+                    eletrica.getBitolaMotoventilador(),
+                    distQuadroEU
+            );
+            adicionarCabo(
+                    cabos,
+                    eletrica.getPernasSolenoide(),
+                    eletrica.getBitolaSolenoide(),
+                    distUEUC
+            );
+
+            for (Map.Entry<String, Integer> entry : cabos.entrySet()) {
+
+                String codigo = entry.getKey();
+                int metros = entry.getValue();
+
+                Material cabo = mapaMateriais.get(codigo);
+
+                if (cabo != null) {
+
+                    lista.add(new ItemTabela(
+                            "Elétrica",
+                            cabo.getNome(),
+                            metros,
+                            cabo.getUnidade(),
+                            cabo.getValor()
+                    ));
+                }
+            }
+
         }
 
         tableMateriais.setItems(lista);
@@ -636,5 +719,20 @@ public class ResultadoUsuario {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // Alterar método adicionarCabo
+    private void adicionarCabo(Map<String, Integer> cabos, int vias, double bitola, double distancia) {
+        // Multiplica a distância pelo número de vias
+        double total = vias * distancia;
+
+        // Arredonda para cima e garante mínimo de 1 metro
+        int metros = (int) Math.ceil(total);
+        if (metros < 1) metros = 1;
+
+        String chave = "CABO-" + String.format("%.2f", bitola).replace(",", ".");
+
+        // Adiciona ao mapa, somando se já existir
+        cabos.merge(chave, metros, Integer::sum);
     }
 }

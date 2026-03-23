@@ -14,48 +14,32 @@ import javafx.stage.Stage;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RefrigeracaoUsuario {
 
-    @FXML
-    public Button btnOrcamento;
-    @FXML
-    public TextField txtTempInterna;
-    @FXML
-    public TextField txtTempEntrada;
-    @FXML
-    public TextField txtCargaProduto;
-    @FXML
-    public TextField txtDistQuadroUC;
-    @FXML
-    public TextField txtDistQuadroEU;
-    @FXML
-    public TextField txtDistUEUC;
-    @FXML
-    public TextField txtAlturaInfra;
-    public Label lblCargaTermica;
-    public Label lblEquipamento;
-    @FXML
-    private Label lblCliente;
-    @FXML
-    private Label lblTipo;
-    @FXML
-    private Label lblDimensoes;
-    @FXML
-    private Label lblEspessura;
-    @FXML
-    private Label lblAreaPorta;
-    @FXML
-    private ComboBox<String> cbVariedade;
-    @FXML
-    private ComboBox<String> cbProduto;
-    @FXML
-    private ComboBox<Integer> cbTempAmbiente;
-    @FXML
-    private TextField txtTempoProcesso;
-    @FXML
-    private TextField txtCondutividade;
+    @FXML public Button btnOrcamento;
+    @FXML public TextField txtTempInterna;
+    @FXML public TextField txtTempEntrada;
+    @FXML public TextField txtCargaProduto;
+    @FXML public TextField txtDistQuadroUC;
+    @FXML public TextField txtDistQuadroEU;
+    @FXML public TextField txtDistUEUC;
+    @FXML public TextField txtAlturaInfra;
+    @FXML public Label lblCargaTermica;
+    @FXML public Label lblEquipamento;
+    @FXML private Label lblCliente;
+    @FXML private Label lblTipo;
+    @FXML private Label lblDimensoes;
+    @FXML private Label lblEspessura;
+    @FXML private Label lblAreaPorta;
+    @FXML private ComboBox<String> cbVariedade;
+    @FXML private ComboBox<String> cbProduto;
+    @FXML private ComboBox<Integer> cbTempAmbiente;
+    @FXML private TextField txtTempoProcesso;
+    @FXML private TextField txtCondutividade;
 
     private Usuario usuario;
     private FormatoCalculator.ResultadoFormato resultados;
@@ -70,12 +54,17 @@ public class RefrigeracaoUsuario {
     private String gasSelecionado;
     private String tipoCamara;
     private Equipamento equipamentoSelecionado;
+    private String tensao;
 
     public void setEspessura(int espessura) {
         this.espessura = espessura;
         if (lblEspessura != null) {
             lblEspessura.setText(espessura + " mm");
         }
+    }
+
+    public void setTensao(String tensao) {
+        this.tensao = tensao;
     }
 
     public void setTipoCamara(String tipoCamara) {
@@ -260,6 +249,11 @@ public class RefrigeracaoUsuario {
 
             controller.setTipoCamara(tipoCamara);
             controller.setEquipamento(equipamentoSelecionado);
+            controller.setDistancias(
+                    Double.parseDouble(txtDistQuadroUC.getText()),
+                    Double.parseDouble(txtDistQuadroEU.getText()),
+                    Double.parseDouble(txtDistUEUC.getText())
+            );
 
             Stage stage = (Stage) btnOrcamento.getScene().getWindow();
             stage.setScene(new Scene(root, 1150, 750));
@@ -349,6 +343,11 @@ public class RefrigeracaoUsuario {
             return;
         }
 
+        double distQuadroUC = Double.parseDouble(txtDistQuadroUC.getText());
+        double distQuadroEU = Double.parseDouble(txtDistQuadroEU.getText());
+        double distUEUC = Double.parseDouble(txtDistUEUC.getText());
+
+
         try {
             // 2️⃣ Extrair valores
             double tempInterna = Double.parseDouble(txtTempInterna.getText());
@@ -417,12 +416,126 @@ public class RefrigeracaoUsuario {
 
             if (eq != null) {
 
-                this.equipamentoSelecionado = eq; // ✅ AQUI
+                this.equipamentoSelecionado = eq;
+
+                // =========================
+                // DEFINIR SE É TRIFÁSICO
+                // =========================
+
+                boolean trifasico = "220V_TRI".equals(tensao);
+
+                Eletrica eletrica = new Eletrica(
+                        eq.getModelo(),
+                        trifasico
+                );
+
+                // =========================
+                // OBTER DADOS ELÉTRICOS
+                // =========================
+
+                double bitolaCompressor = eletrica.getBitolaCompressor();
+                int pernasCompressor = eletrica.getPernasCompressor();
+
+                double bitolaPressostato = eletrica.getBitolaPressostato();
+                int pernasPressostato = eletrica.getPernasPressostato();
+
+                double bitolaSensor = eletrica.getBitolaSensor();
+                int pernasSensor = eletrica.getPernasSensor();
+
+                double bitolaVent = eletrica.getBitolaMotoventilador();
+                int pernasVent = eletrica.getPernasMotoventilador();
+
+                double bitolaSol = eletrica.getBitolaSolenoide();
+                int pernasSol = eletrica.getPernasSolenoide();
+
+                // =========================
+                // IMPRIMIR NO TERMINAL
+                // =========================
+
+                Map<String, Double> cabos = new LinkedHashMap<>();
+
+                // COMPRESSOR → quadro → UC
+                adicionarCabo(cabos, eletrica.getPernasCompressor(), eletrica.getBitolaCompressor(), distQuadroUC);
+
+                // PRESSOSTATO → quadro → UC
+                adicionarCabo(cabos, eletrica.getPernasPressostato(), eletrica.getBitolaPressostato(), distQuadroUC);
+
+                // SENSOR → quadro → UC (ou onde estiver ligado)
+                adicionarCabo(cabos, eletrica.getPernasSensor(), eletrica.getBitolaSensor(), distQuadroUC);
+
+                // MOTOVENTILADOR → quadro → EU
+                adicionarCabo(cabos, eletrica.getPernasMotoventilador(), eletrica.getBitolaMotoventilador(), distQuadroEU);
+
+                // SOLENOIDE → quadro → EU
+                adicionarCabo(cabos, eletrica.getPernasSolenoide(), eletrica.getBitolaSolenoide(), distQuadroEU);
+
+                System.out.println("Distância Quadro → UC: " + distQuadroUC);
+                System.out.println("Distância Quadro → EU: " + distQuadroEU);
+                System.out.println("Distância UE → UC: " + distUEUC);
+
+                System.out.println("\n===== CABOS ELÉTRICOS =====");
+
+                // COMPRESSOR
+                double metrosCompressor = distQuadroUC * pernasCompressor;
+
+                System.out.println(
+                        pernasCompressor + " vias " +
+                                bitolaCompressor + "mm² = " +
+                                String.format("%.0f", metrosCompressor) +
+                                " metros de fio"
+                );
+
+                // PRESSOSTATO
+                double metrosPress = distQuadroUC * pernasPressostato;
+
+                System.out.println(
+                        pernasPressostato + " vias " +
+                                bitolaPressostato + "mm² = " +
+                                String.format("%.0f", metrosPress) +
+                                " metros de fio"
+                );
+
+                // SENSOR
+                double metrosSensor = distUEUC * pernasSensor;
+
+                System.out.println(
+                        pernasSensor + " vias " +
+                                bitolaSensor + "mm² = " +
+                                String.format("%.0f", metrosSensor) +
+                                " metros de fio"
+                );
+
+                // MOTOVENTILADOR
+                double metrosVent = distQuadroEU * pernasVent;
+
+                System.out.println(
+                        pernasVent + " vias " +
+                                bitolaVent + "mm² = " +
+                                String.format("%.0f", metrosVent) +
+                                " metros de fio"
+                );
+
+                    // SOLENOIDE
+                double metrosSol = distUEUC * pernasSol;
+
+                System.out.println(
+                        pernasSol + " vias " +
+                                bitolaSol + "mm² = " +
+                                String.format("%.0f", metrosSol) +
+                                " metros de fio"
+                );
+
+                System.out.println("===========================\n");
+
+                // =========================
+                // LABEL EQUIPAMENTO
+                // =========================
 
                 lblEquipamento.setText(
                         "Modelo: " + eq.getModelo() +
                                 " | Gás: " + eq.getGas() +
-                                " | Capacidade: " + String.format("%.0f kcal/h", eq.getCarga())
+                                " | Capacidade: " +
+                                String.format("%.0f kcal/h", eq.getCarga())
                 );
 
                 this.gasSelecionado = eq.getGas();
@@ -437,7 +550,6 @@ public class RefrigeracaoUsuario {
                 );
             }
 
-
         } catch (NumberFormatException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Erro de formato");
@@ -445,6 +557,13 @@ public class RefrigeracaoUsuario {
             alert.setContentText("Por favor, insira valores numéricos válidos.");
             alert.showAndWait();
         }
+    }
+
+    private void adicionarCabo(Map<String, Double> cabos, int vias, double bitola, double distancia) {
+        double total = vias * distancia;
+        if (total < 1) total = 1; // mínimo 1 metro
+        String chave = "CABO-" + String.format("%.2f", bitola).replace(",", ".");
+        cabos.put(chave, cabos.getOrDefault(chave, 0.0) + total);
     }
 
     private int calcularTempEvap(double tempInterna, String tipoCamara) {

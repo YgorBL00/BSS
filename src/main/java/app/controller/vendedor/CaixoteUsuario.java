@@ -58,10 +58,14 @@ public class CaixoteUsuario {
 
     @FXML private VBox boxCantos;
 
+    @FXML private RadioButton rb220Mono;
+    @FXML private RadioButton rb220Tri;
+
     @FXML private CheckBox chkFrente;
     @FXML private CheckBox chkAtras;
     @FXML private CheckBox chkLadoEsquerdo;
     @FXML private CheckBox chkLadoDireito;
+    private String tensao;
 
     @FXML private Button btnAvancar;
 
@@ -115,6 +119,11 @@ public class CaixoteUsuario {
         spCantoSemAcabamento.setValue("Não");
 
         rbResfriado.setSelected(true);
+
+        ToggleGroup grupoTensao = new ToggleGroup();
+
+        rb220Mono.setToggleGroup(grupoTensao);
+        rb220Tri.setToggleGroup(grupoTensao);
 
         //carregarMateriais(); // <<< AQUI
 
@@ -187,6 +196,15 @@ public class CaixoteUsuario {
             var resultados = FormatoCalculator.calcular(
                     C, L, A, E, possuiPiso, portas, isCongelado
             );
+
+            if (rb220Mono.isSelected()) {
+                tensao = "220V_MONO";
+            } else if (rb220Tri.isSelected()) {
+                tensao = "220V_TRI";
+            } else {
+                tensao = "INDEFINIDO";
+            }
+
             abrirTelaRefrigeracao(resultados);
 
             //imprimirResultados(resultados);
@@ -701,12 +719,11 @@ public class CaixoteUsuario {
 
             RefrigeracaoUsuario controller = loader.getController();
 
-
-
             controller.setUsuario(usuario);
             controller.setResultados(resultados);
             controller.setEspessura(cbEspessura.getValue());
             controller.setPortas(portas);
+            controller.setTensao(tensao);
 
             controller.setCliente(txtCliente.getText());
             controller.setDimensoes(

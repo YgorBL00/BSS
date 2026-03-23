@@ -65,7 +65,12 @@ public class Login implements Initializable {
 
             try {
 
-                abrirTela("/app/usuario/painel-usuario.fxml", usuario);
+                // verifica o cargo
+                if (usuario.getCargo().equalsIgnoreCase("ADMIN")) {
+                    abrirTela("/app/admin/painel-admin.fxml", usuario);
+                } else {
+                    abrirTela("/app/usuario/painel-usuario.fxml", usuario);
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();

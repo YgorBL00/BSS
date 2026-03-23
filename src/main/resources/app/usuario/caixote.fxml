@@ -49,68 +49,76 @@
 
                 </HBox>
 
+                <!-- Tensão -->
+                <Label text="Tensão"
+                       GridPane.rowIndex="2"
+                       GridPane.columnIndex="0"/>
+
+                <HBox spacing="10"
+                      GridPane.rowIndex="2"
+                      GridPane.columnIndex="1">
+
+                    <RadioButton fx:id="rb220Mono" text="220V 1F"/>
+                    <RadioButton fx:id="rb220Tri" text="220V 3F"/>
+
+                </HBox>
+
                 <!-- Comprimento -->
-                <Label text="Comprimento (m)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <Label text="Comprimento (m)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                 <TextField fx:id="txtComprimento"
                            promptText="Comprimento"
-                           GridPane.rowIndex="2"
-                           GridPane.columnIndex="1"/>
-
-                <!-- Largura -->
-                <Label text="Largura (m)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                <TextField fx:id="txtLargura"
-                           promptText="Largura"
                            GridPane.rowIndex="3"
                            GridPane.columnIndex="1"/>
 
-                <!-- Altura -->
-                <Label text="Altura (m)" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                <TextField fx:id="txtAltura"
-                           promptText="Altura"
+                <!-- Largura -->
+                <Label text="Largura (m)" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtLargura"
+                           promptText="Largura"
                            GridPane.rowIndex="4"
                            GridPane.columnIndex="1"/>
 
+                <!-- Altura -->
+                <Label text="Altura (m)" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                <TextField fx:id="txtAltura"
+                           promptText="Altura"
+                           GridPane.rowIndex="5"
+                           GridPane.columnIndex="1"/>
+
                 <!-- Espessura -->
-                <Label text="Espessura do Painel (mm)" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                <Label text="Espessura do Painel (mm)" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
                 <ComboBox fx:id="cbEspessura"
-                          GridPane.rowIndex="5"
+                          GridPane.rowIndex="6"
                           GridPane.columnIndex="1"/>
 
                 <!-- Piso -->
                 <CheckBox fx:id="chkPiso"
                           text="Possui piso"
-                          GridPane.rowIndex="6"
+                          GridPane.rowIndex="7"
                           GridPane.columnIndex="1"/>
 
                 <!-- Porta -->
-                <Label text="Porta" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                <Label text="Porta" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
 
                 <Button text="Configurar Portas"
                         onAction="#abrirConfigPortas"
-                        GridPane.rowIndex="7"
+                        GridPane.rowIndex="8"
                         GridPane.columnIndex="1"/>
 
                 <!-- Canto -->
                 <Label text="Canto sem acabamento"
-                       GridPane.rowIndex="8"
+                       GridPane.rowIndex="9"
                        GridPane.columnIndex="0"/>
 
                 <ComboBox fx:id="spCantoSemAcabamento"
-                          GridPane.rowIndex="8"
+                          GridPane.rowIndex="9"
                           GridPane.columnIndex="1"/>
 
-                <!-- Cantos -->
                 <VBox fx:id="boxCantos"
                       spacing="5"
                       visible="false"
                       managed="false"
-                      GridPane.rowIndex="9"
+                      GridPane.rowIndex="10"
                       GridPane.columnIndex="1">
-
-                    <CheckBox fx:id="chkFrente" text="Frente (Comprimento)"/>
-                    <CheckBox fx:id="chkAtras" text="Atrás (Comprimento)"/>
-                    <CheckBox fx:id="chkLadoEsquerdo" text="Lado Esquerdo (Largura)"/>
-                    <CheckBox fx:id="chkLadoDireito" text="Lado Direito (Largura)"/>
 
                 </VBox>
 
