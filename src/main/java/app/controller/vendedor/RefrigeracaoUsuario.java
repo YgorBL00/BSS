@@ -417,6 +417,8 @@ public class RefrigeracaoUsuario {
 
             if (eq != null) {
 
+                this.equipamentoSelecionado = eq; // ✅ AQUI
+
                 lblEquipamento.setText(
                         "Modelo: " + eq.getModelo() +
                                 " | Gás: " + eq.getGas() +

@@ -104,8 +104,7 @@
                 <Button text="Gerar Orçamento"
                         fx:id="btnGerarOrcamento"/>
 
-                <Button text="Exportar PDF"
-                        fx:id="btnExportar"/>
+                <Button text="Exportar PDF" onAction="#exportarPDF"/>
 
             </HBox>
 

@@ -67,19 +67,25 @@ public class UCService {
         String tabelaCarga = gas.equals("R404A") ? "carga_termica_r404a" : "carga_termica_r22";
 
         String sql = String.format("""
-        SELECT u.modelo, c.carga_kcal, c.temp_evaporacao
-        FROM %s u
-        JOIN %s c ON u.modelo = c.modelo
-        WHERE c.temp_ambiente = ?
-        ORDER BY 
-            ABS(c.temp_evaporacao - ?) ASC,
-            CASE 
-                WHEN c.carga_kcal >= ? THEN 0 
-                ELSE 1 
-            END,
-            ABS(c.carga_kcal - ?) ASC
-        LIMIT 1
-    """, tabelaUC, tabelaCarga);
+            SELECT 
+                u.modelo,
+                u.tanque_de_liquido,
+                u.linha_de_liquido,
+                u.linha_de_succao_gas,
+                c.carga_kcal,
+                c.temp_evaporacao
+            FROM %s u
+            JOIN %s c ON u.modelo = c.modelo
+            WHERE c.temp_ambiente = ?
+            ORDER BY 
+                ABS(c.temp_evaporacao - ?) ASC,
+                CASE 
+                    WHEN c.carga_kcal >= ? THEN 0 
+                    ELSE 1 
+                END,
+                ABS(c.carga_kcal - ?) ASC
+            LIMIT 1
+        """, tabelaUC, tabelaCarga);
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -95,7 +101,10 @@ public class UCService {
                 return new Equipamento(
                         rs.getString("modelo"),
                         gas,
-                        rs.getDouble("carga_kcal")
+                        rs.getDouble("carga_kcal"),
+                        rs.getDouble("tanque_de_liquido"),
+                        rs.getString("linha_de_liquido"),
+                        rs.getString("linha_de_succao_gas")
                 );
             }
 

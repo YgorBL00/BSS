@@ -7,6 +7,7 @@ import app.service.FormatoCalculator;
 import app.service.MaterialService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -22,6 +23,9 @@ import java.util.Locale;
 
 import java.util.ArrayList;
 import java.util.List;
+import javafx.stage.FileChooser;
+import java.io.File;
+
 
 public class ResultadoUsuario {
 
@@ -31,6 +35,7 @@ public class ResultadoUsuario {
 
     @FXML public Label lblCusto;
     @FXML public Label lblVenda;
+    public Button btnExportar;
     @FXML private Button btnVoltar;
 
     @FXML private Label lblCliente;
@@ -45,6 +50,7 @@ public class ResultadoUsuario {
     @FXML private TableColumn<ItemTabela, String> colUnidade;
     @FXML private TableColumn<ItemTabela, Double> colValor;
     @FXML private TableColumn<ItemTabela, Double> colTotal;
+
 
 
     // =============================
@@ -65,6 +71,9 @@ public class ResultadoUsuario {
     private Equipamento equipamento;
 
 
+
+
+
     public void setDadosRefrigeracao(double carga, int amb, double evap, String gas) {
         this.cargaNecessaria = carga;
         this.tempAmbiente = amb;
@@ -73,6 +82,94 @@ public class ResultadoUsuario {
     }
 
     public void setEquipamento(Equipamento equipamentoSelecionado) {
+        this.equipamento = equipamentoSelecionado;
+        preencherTabela(); // ✅ força atualizar tabela
+    }
+
+    @FXML
+    public void exportarPDF() {
+
+        try {
+
+            // =========================
+            // ABRIR EXPLORADOR (SALVAR COMO)
+            // =========================
+            javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+            fileChooser.setTitle("Salvar Orçamento PDF");
+
+            fileChooser.getExtensionFilters().add(
+                    new javafx.stage.FileChooser.ExtensionFilter("Arquivo PDF", "*.pdf")
+            );
+
+            fileChooser.setInitialFileName("orcamento_" + lblCliente.getText() + ".pdf");
+
+            java.io.File file = fileChooser.showSaveDialog(btnVoltar.getScene().getWindow());
+
+            // se cancelar, sai
+            if (file == null) {
+                return;
+            }
+
+            String caminho = file.getAbsolutePath();
+
+            // =========================
+            // CRIAR PDF
+            // =========================
+            com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
+            com.itextpdf.text.pdf.PdfWriter.getInstance(doc, new java.io.FileOutputStream(caminho));
+
+            doc.open();
+
+            // =========================
+            // TÍTULO
+            // =========================
+            doc.add(new com.itextpdf.text.Paragraph("ORÇAMENTO DE CÂMARA FRIGORÍFICA\n\n"));
+
+            // =========================
+            // DADOS DO CLIENTE
+            // =========================
+            doc.add(new com.itextpdf.text.Paragraph("Cliente: " + lblCliente.getText()));
+            doc.add(new com.itextpdf.text.Paragraph("Tipo: " + lblTipo.getText()));
+            doc.add(new com.itextpdf.text.Paragraph("Dimensões: " + lblDimensoes.getText()));
+            doc.add(new com.itextpdf.text.Paragraph("\n"));
+
+            // =========================
+            // TABELA (SEM VALORES)
+            // =========================
+            com.itextpdf.text.pdf.PdfPTable tabela = new com.itextpdf.text.pdf.PdfPTable(3);
+            tabela.setWidthPercentage(100);
+
+            tabela.addCell("Item");
+            tabela.addCell("Descrição");
+            tabela.addCell("Qtd");
+
+            for (ItemTabela item : tableMateriais.getItems()) {
+                tabela.addCell(item.getItem());
+                tabela.addCell(item.getDescricao());
+                tabela.addCell(String.valueOf(item.getQuantidade()));
+            }
+
+            doc.add(tabela);
+
+            doc.close();
+
+            // =========================
+            // ABRIR PDF AUTOMATICAMENTE
+            // =========================
+            java.awt.Desktop.getDesktop().open(file);
+
+            // =========================
+            // ALERTA
+            // =========================
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("PDF gerado");
+            alert.setHeaderText(null);
+            alert.setContentText("PDF salvo em:\n" + caminho);
+            alert.showAndWait();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -187,6 +284,7 @@ public class ResultadoUsuario {
         colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
     }
+
 
     // =============================
     // SETTERS
@@ -424,7 +522,9 @@ public class ResultadoUsuario {
         // =========================
         if (portas != null && !portas.isEmpty()) {
             for (Porta p : portas) {
+
                 String codigo = gerarCodigoPorta(p);
+
                 Material materialPorta = materiais.stream()
                         .filter(m -> m.getCodigo().equals(codigo))
                         .findFirst()
@@ -448,18 +548,50 @@ public class ResultadoUsuario {
                     ));
                 }
             }
-            // =========================
-            // EQUIPAMENTO (UNIDADE CONDENSADORA)
-            // =========================
-            if (equipamento != null) {
-                lista.add(new ItemTabela(
-                        "Refrigeração",
-                        "Unidade Condensadora " + equipamento.getModelo(),
-                        1,
-                        "un",
-                        0// precisa ter esse campo no banco
-                ));
-            }
+        } // ✅ FECHA AQUI
+
+        // =========================
+        // EQUIPAMENTO (FORA DO IF)
+        // =========================
+        if (equipamento != null) {
+
+            // 🔹 UNIDADE CONDENSADORA
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Unidade Condensadora " + equipamento.getModelo(),
+                    1,
+                    "un",
+                    0
+            ));
+
+            // 🔹 GÁS (70% do tanque)
+            double kgGas = equipamento.getTanqueLiquido() * 0.7;
+
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Gás " + equipamento.getGas(),
+                    (int) Math.ceil(kgGas),
+                    "kg",
+                    0
+            ));
+
+            // 🔹 LINHA DE LÍQUIDO (5m padrão)
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Tubulução de Cobre Flexivel " + equipamento.getLinhaLiquido(),
+                    5,
+                    "m",
+                    0
+            ));
+
+            // 🔹 LINHA DE SUCÇÃO (5m padrão)
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Tubulução de Cobre Flexivel " + equipamento.getLinhaSucção(),
+                    5,
+                    "m",
+                    0
+            ));
         }
 
         tableMateriais.setItems(lista);
@@ -505,6 +637,4 @@ public class ResultadoUsuario {
             e.printStackTrace();
         }
     }
-
-
 }

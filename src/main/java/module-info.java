@@ -4,6 +4,8 @@ module com.financecontrol.bss {
     requires java.sql;
     requires javafx.graphics;
     requires javafx.base;
+    requires itextpdf;
+    requires java.desktop;
 
     opens app to javafx.fxml;
     opens app.controller to javafx.fxml;
