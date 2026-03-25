@@ -1,8 +1,10 @@
 package app.controller.vendedor;
 
 import app.model.*;
+import app.service.EvaporadoraService;
 import app.service.FormatoCalculator;
 import app.service.MaterialService;
+import com.itextpdf.text.pdf.PdfPTable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -47,8 +49,6 @@ public class ResultadoUsuario {
     @FXML private TableColumn<ItemTabela, Double> colValor;
     @FXML private TableColumn<ItemTabela, Double> colTotal;
 
-
-
     // =============================
     // VARIÁVEIS
     // =============================
@@ -68,9 +68,10 @@ public class ResultadoUsuario {
     private double distQuadroUC;
     private double distQuadroEU;
     private double distUEUC;
-
-
-
+    private String tensao;
+    private double cargaKcal;
+    double cargaComSeguranca = cargaKcal * 1.10;
+    private Evaporadora evaporadora;
 
 
     public void setDadosRefrigeracao(double carga, int amb, double evap, String gas) {
@@ -80,9 +81,19 @@ public class ResultadoUsuario {
         this.gas = gas;
     }
 
+    public void setTensao(String tensao) {
+        this.tensao = tensao;
+        System.out.println("Tensao recebida: " + tensao);
+        preencherTabela(); // 🔥 atualizar tabela
+    }
+
     public void setEquipamento(Equipamento equipamentoSelecionado) {
         this.equipamento = equipamentoSelecionado;
         preencherTabela(); // ✅ força atualizar tabela
+    }
+
+    public void setEvaporadora(Evaporadora evap) {
+        this.evaporadora = evap;
     }
 
     public void setDistancias(double quadroUC, double quadroEU, double ueuc) {
@@ -95,25 +106,26 @@ public class ResultadoUsuario {
     public void exportarPDF() {
 
         try {
-
             // =========================
             // ABRIR EXPLORADOR (SALVAR COMO)
             // =========================
-            javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+            FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Salvar Orçamento PDF");
 
             fileChooser.getExtensionFilters().add(
-                    new javafx.stage.FileChooser.ExtensionFilter("Arquivo PDF", "*.pdf")
+                    new FileChooser.ExtensionFilter("Arquivo PDF", "*.pdf")
             );
 
-            fileChooser.setInitialFileName("orcamento_" + lblCliente.getText() + ".pdf");
-
-            java.io.File file = fileChooser.showSaveDialog(btnVoltar.getScene().getWindow());
-
-            // se cancelar, sai
-            if (file == null) {
-                return;
+            // Define nome do arquivo
+            String nomeCliente = lblCliente.getText();
+            if (nomeCliente == null || nomeCliente.trim().isEmpty()) {
+                nomeCliente = "orcamento";
             }
+            fileChooser.setInitialFileName("orcamento_" + nomeCliente + ".pdf");
+
+            File file = fileChooser.showSaveDialog(btnVoltar.getScene().getWindow());
+
+            if (file == null) return; // se cancelar
 
             String caminho = file.getAbsolutePath();
 
@@ -122,7 +134,6 @@ public class ResultadoUsuario {
             // =========================
             com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
             com.itextpdf.text.pdf.PdfWriter.getInstance(doc, new java.io.FileOutputStream(caminho));
-
             doc.open();
 
             // =========================
@@ -139,19 +150,21 @@ public class ResultadoUsuario {
             doc.add(new com.itextpdf.text.Paragraph("\n"));
 
             // =========================
-            // TABELA (SEM VALORES)
+            // TABELA (AGORA COM UNIDADE)
             // =========================
-            com.itextpdf.text.pdf.PdfPTable tabela = new com.itextpdf.text.pdf.PdfPTable(3);
+            PdfPTable tabela = new PdfPTable(4); // 4 colunas: Item, Descrição, Qtd, Unidade
             tabela.setWidthPercentage(100);
 
             tabela.addCell("Item");
             tabela.addCell("Descrição");
             tabela.addCell("Qtd");
+            tabela.addCell("Unidade");
 
             for (ItemTabela item : tableMateriais.getItems()) {
                 tabela.addCell(item.getItem());
                 tabela.addCell(item.getDescricao());
                 tabela.addCell(String.valueOf(item.getQuantidade()));
+                tabela.addCell(item.getUnidade());
             }
 
             doc.add(tabela);
@@ -568,7 +581,7 @@ public class ResultadoUsuario {
                     "Unidade Condensadora " + equipamento.getModelo(),
                     1,
                     "un",
-                    0
+                    equipamento.getValor()
             ));
 
             // 🔹 GÁS (70% do tanque)
@@ -584,6 +597,33 @@ public class ResultadoUsuario {
                     gasMaterial != null ? gasMaterial.getValor() : 0
             ));
 
+            Evaporadora evap = this.evaporadora;
+
+            if (evap != null) {
+                lista.add(new ItemTabela(
+                        "Refrigeração",
+                        "Evaporadora " + evap.getCodigo() + " " + evap.getVentiladores() + "V",
+                        1,
+                        "un",
+                        evap.getValor()
+                ));
+
+                int ventiladores = evap.getVentiladores();
+                int numeroOrificio = Math.max(ventiladores - 1, 1);
+                String codOrificio = "ORIF-N" + numeroOrificio;
+
+                Material orificio = mapaMateriais.get(codOrificio);
+                if (orificio != null) {
+                    lista.add(new ItemTabela(
+                            "Refrigeração",
+                            orificio.getNome(),
+                            1,
+                            orificio.getUnidade(),
+                            orificio.getValor()
+                    ));
+                }
+            }
+
             // 🔹 LINHA DE LÍQUIDO → quadro → UC
             String codLiquido = "TC-" + equipamento.getLinhaLiquido();
             Material tuboLiquido = mapaMateriais.get(codLiquido);
@@ -591,7 +631,7 @@ public class ResultadoUsuario {
             lista.add(new ItemTabela(
                     "Refrigeração",
                     "Tubulação de Cobre Flexível " + equipamento.getLinhaLiquido(),
-                    (int) Math.ceil(distQuadroUC), // agora usa somente distQuadroUC
+                    (int) Math.ceil(distUEUC), // agora usa somente distQuadroUC
                     "m",
                     tuboLiquido != null ? tuboLiquido.getValor() : 0
             ));
@@ -603,10 +643,110 @@ public class ResultadoUsuario {
             lista.add(new ItemTabela(
                     "Refrigeração",
                     "Tubulação de Cobre Flexível " + equipamento.getLinhaSucção(),
-                    (int) Math.ceil(distQuadroEU), // agora usa somente distQuadroEU
+                    (int) Math.ceil(distUEUC), // agora usa somente distQuadroEU
                     "m",
                     tuboSuccao != null ? tuboSuccao.getValor() : 0
             ));
+
+            // 🔹 SIFÃO (sempre 1 unidade)
+            String codSifao = "SIF-" + equipamento.getLinhaLiquido();
+
+            Material sifao = mapaMateriais.get(codSifao);
+
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Sifão de Cobre " + equipamento.getLinhaLiquido(),
+                    1,
+                    "un",
+                    sifao != null ? sifao.getValor() : 0
+            ));
+
+            // 🔹 VÁLVULA SOLENOIDE
+            String codVS = "VS-" + equipamento.getLinhaSucção();
+
+            Material valvulaSolenoide = mapaMateriais.get(codVS);
+
+            int qtdVS = 1;
+
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Válvula Solenoide " + equipamento.getLinhaSucção(),
+                    qtdVS,
+                    "un",
+                    valvulaSolenoide != null ? valvulaSolenoide.getValor() : 0
+            ));
+
+            // 🔹 BOBINA SOLENOIDE
+            Material bobina = mapaMateriais.get("BOB-220");
+
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Bobina Solenoide 220V",
+                    qtdVS,
+                    "un",
+                    bobina != null ? bobina.getValor() : 0
+            ));
+
+            // 🔹 VÁLVULA DE EXPANSÃO
+            String codVEX = "VEX-" + equipamento.getGas();
+
+            Material valvulaExpansao = mapaMateriais.get(codVEX);
+
+            int qtdVEX = 1; // 1 por evaporador
+
+            lista.add(new ItemTabela(
+                    "Refrigeração",
+                    "Válvula de Expansão " + equipamento.getGas(),
+                    qtdVEX,
+                    "un",
+                    valvulaExpansao != null ? valvulaExpansao.getValor() : 0
+            ));
+
+            System.out.println("Gas equipamento: " + equipamento.getGas());
+
+            String gasEq = equipamento.getGas().trim().toUpperCase();
+
+            if (gasEq.equals("R404") || gasEq.equals("R404A")) {
+
+                String bitola = equipamento.getLinhaSucção().trim();
+
+                if (bitola.equals("3/8")) {
+                    bitola = "1/2";
+                }
+                System.out.println("Bitola sucção: " + bitola);
+
+                String codACU = "ACU-" + bitola;
+                String codSEP = "SEP-" + bitola;
+
+                System.out.println("Buscando: " + codACU);
+                System.out.println("Buscando: " + codSEP);
+
+                // ACUMULADOR
+                Material acumulador = mapaMateriais.get(codACU);
+
+                if (acumulador != null) {
+                    lista.add(new ItemTabela(
+                            "Refrigeração",
+                            acumulador.getNome(),
+                            1,
+                            "un",
+                            acumulador.getValor()
+                    ));
+                }
+
+                // SEPARADOR DE ÓLEO
+                Material separador = mapaMateriais.get(codSEP);
+
+                if (separador != null) {
+                    lista.add(new ItemTabela(
+                            "Refrigeração",
+                            separador.getNome(),
+                            1,
+                            "un",
+                            separador.getValor()
+                    ));
+                }
+            }
 
             // =========================
             // CABOS ELÉTRICOS
@@ -675,6 +815,131 @@ public class ResultadoUsuario {
                 }
             }
 
+            double area = resultados.getAreaTotal();
+
+            Material lum120 = mapaMateriais.get("LUN-120");
+            Material lum060 = mapaMateriais.get("LUN-060");
+
+            if (area <= 2) {
+
+                // 1 luminária 60cm
+                if (lum060 != null) {
+                    lista.add(new ItemTabela(
+                            "Elétrica",
+                            lum060.getNome(),
+                            1,
+                            lum060.getUnidade(),
+                            lum060.getValor()
+                    ));
+                }
+
+            } else {
+
+                // 1 luminária 120cm inicial
+                int qtd = 1;
+
+                // a cada 5m² adiciona mais 1
+                qtd += (int) Math.floor(area / 5);
+
+                if (lum120 != null) {
+                    lista.add(new ItemTabela(
+                            "Elétrica",
+                            lum120.getNome(),
+                            qtd,
+                            lum120.getUnidade(),
+                            lum120.getValor()
+                    ));
+                }
+            }
+
+            // =========================
+
+
+
+            Material eletroduto = mapaMateriais.get("ELETRO-PVC01");
+            Material condulete = mapaMateriais.get("CONDU-TAMP01");
+            Material conector = mapaMateriais.get("CONEC-CON01");
+
+            // quantidade de barras (3 metros cada)
+            int barras = (int) Math.ceil(distQuadroUC / 3.0);
+
+            if (barras < 1) barras = 1;
+
+            // ELETRODUTO
+            if (eletroduto != null) {
+                lista.add(new ItemTabela(
+                        "Elétrica",
+                        eletroduto.getNome(),
+                        barras,
+                        eletroduto.getUnidade(),
+                        eletroduto.getValor()
+                ));
+            }
+
+            // CONDULETE (1 por barra)
+            if (condulete != null) {
+                lista.add(new ItemTabela(
+                        "Elétrica",
+                        condulete.getNome(),
+                        barras,
+                        condulete.getUnidade(),
+                        condulete.getValor()
+                ));
+            }
+
+            // CONECTOR (2 por barra)
+            if (conector != null) {
+                lista.add(new ItemTabela(
+                        "Elétrica",
+                        conector.getNome(),
+                        barras * 2,
+                        conector.getUnidade(),
+                        conector.getValor()
+                ));
+            }
+
+            // 🔹 QUADRO DE COMANDO
+            double hp = equipamento.getHp();
+
+            String codigoQuadro;
+
+            if (hp <= 2) {
+                codigoQuadro = "QC-1-2HP";
+            }
+            else if (hp <= 3) {
+                codigoQuadro = "QC-2-3HP";
+            }
+            else if (hp <= 4) {
+                codigoQuadro = "QC-3-4HP";
+            }
+            else if (hp <= 5) {
+                codigoQuadro = "QC-4-5HP";
+            }
+            else if (hp <= 6) {
+                codigoQuadro = "QC-6HP";
+            }
+            else {
+                codigoQuadro = "QC-SOB-ENCOMENDA";
+            }
+
+            Material quadro = mapaMateriais.get(codigoQuadro);
+
+            if (quadro != null) {
+
+                String descricaoQuadro =
+                        quadro.getNome() +
+                                " - Câmara " + tipoCamara +
+                                " - " + tensao;
+
+                lista.add(new ItemTabela(
+                        "Elétrica",
+                        descricaoQuadro,
+                        1,
+                        quadro.getUnidade(),
+                        quadro.getValor()
+                ));
+            }
+
         }
 
         tableMateriais.setItems(lista);
@@ -711,7 +976,16 @@ public class ResultadoUsuario {
             Parent root = loader.load();
 
             RefrigeracaoUsuario controller = loader.getController();
+
             controller.setUsuario(usuario);
+            controller.setResultados(resultados);
+            controller.setEspessura(espessura);
+            controller.setPortas(portas);
+            controller.setTensao(tensao);
+
+            controller.setCliente(lblCliente.getText());
+            controller.setDimensoes(lblDimensoes.getText());
+            controller.setTipoCamara(lblTipo.getText());
 
             Stage stage = (Stage) btnVoltar.getScene().getWindow();
             stage.setScene(new Scene(root, 1150, 750));

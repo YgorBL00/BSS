@@ -46,6 +46,11 @@
                       prefTileHeight="140"
                       alignment="TOP_CENTER"/>
 
+            <Button text="Sair"
+                    onAction="#sairSistema"
+                    prefWidth="100"/>
+
+
         </VBox>
 
     </center>

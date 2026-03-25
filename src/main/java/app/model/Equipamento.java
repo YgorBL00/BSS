@@ -7,6 +7,11 @@ public class Equipamento {
     private double tanqueLiquido;
     private String linhaLiquido;
     private String linhaSucção;
+    private String acumuladorSuccao;
+    private String separadorOleo;
+    private double hp;
+    private double valor;
+
 
     public Equipamento(String modelo, String gas, double carga,
                        double tanqueLiquido,
@@ -21,10 +26,29 @@ public class Equipamento {
         this.linhaSucção = linhaSucção;
     }
 
+    public double getHp() {
+        return hp;
+    }
+
+    public void setHp(double hp) {
+        this.hp = hp;
+    }
+
+    public double getValor() {
+        return valor;
+    }
+
+    public void setValor(double valor) {
+        this.valor = valor;
+    }
     public String getModelo() { return modelo; }
     public String getGas() { return gas; }
     public double getCarga() { return carga; }
     public double getTanqueLiquido() { return tanqueLiquido; }
     public String getLinhaLiquido() { return linhaLiquido; }
     public String getLinhaSucção() { return linhaSucção; }
+    public String getAcumuladorSuccao() {return acumuladorSuccao;}
+    public void setAcumuladorSuccao(String acumuladorSuccao) {this.acumuladorSuccao = acumuladorSuccao;}
+    public String getSeparadorOleo() {return separadorOleo;}
+    public void setSeparadorOleo(String separadorOleo) {this.separadorOleo = separadorOleo;}
 }

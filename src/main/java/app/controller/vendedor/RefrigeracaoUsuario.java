@@ -2,6 +2,7 @@ package app.controller.vendedor;
 
 import app.model.*;
 import app.model.LogicaRefrigeracao;
+import app.service.EvaporadoraService;
 import app.service.FormatoCalculator;
 import app.service.ProdutoService;
 import app.service.UCService;
@@ -55,6 +56,7 @@ public class RefrigeracaoUsuario {
     private String tipoCamara;
     private Equipamento equipamentoSelecionado;
     private String tensao;
+    private Evaporadora evapSelecionada;
 
     public void setEspessura(int espessura) {
         this.espessura = espessura;
@@ -248,12 +250,14 @@ public class RefrigeracaoUsuario {
             );
 
             controller.setTipoCamara(tipoCamara);
-            controller.setEquipamento(equipamentoSelecionado);
             controller.setDistancias(
                     Double.parseDouble(txtDistQuadroUC.getText()),
                     Double.parseDouble(txtDistQuadroEU.getText()),
                     Double.parseDouble(txtDistUEUC.getText())
             );
+            controller.setEquipamento(equipamentoSelecionado);
+            controller.setEvaporadora(evapSelecionada); // ✅ aqui
+            controller.setTensao(tensao);
 
             Stage stage = (Stage) btnOrcamento.getScene().getWindow();
             stage.setScene(new Scene(root, 1150, 750));
@@ -268,17 +272,23 @@ public class RefrigeracaoUsuario {
 
         try {
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/app/usuario/refrigeracao.fxml"));
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/app/usuario/caixote.fxml")
+            );
+
             Parent root = loader.load();
 
-            RefrigeracaoUsuario controller = loader.getController();
-            controller.setTipoCamara("Frigorífico");
+            CaixoteUsuario controller = loader.getController();
+
             controller.setUsuario(usuario);
             controller.setResultados(resultados);
-            controller.setCliente("Cliente XYZ");
-            controller.setDimensoes("2x3x2 m");
+            controller.setEspessura(espessura);
             controller.setPortas(portas);
 
+            controller.setCliente(lblCliente.getText());
+            controller.setDimensoes(lblDimensoes.getText());
+            controller.setTipoCamara(tipoCamara);
+            controller.setTensao(tensao);
 
             Stage stage = (Stage) btnOrcamento.getScene().getWindow();
             stage.setScene(new Scene(root, 1150, 750));
@@ -413,6 +423,19 @@ public class RefrigeracaoUsuario {
                     gas
             );
 
+            EvaporadoraService evapService = new EvaporadoraService();
+
+            Evaporadora evap = evapService.buscarEvaporadora(cargaComSeguranca, tempEvap);
+
+            if (evap != null) {
+                this.evapSelecionada = evap; // salva para passar ao ResultadoUsuario
+                System.out.println("Evaporadora escolhida: " + evap.getCodigo() +
+                        " | Capacidade: " + evap.getCapacidade() + " kcal" +
+                        " | Valor: " + evap.getValor());
+            } else {
+                System.out.println("Nenhuma evaporadora encontrada para os parâmetros informados.");
+            }
+
 
             if (eq != null) {
 
@@ -515,7 +538,7 @@ public class RefrigeracaoUsuario {
                                 " metros de fio"
                 );
 
-                    // SOLENOIDE
+                // SOLENOIDE
                 double metrosSol = distUEUC * pernasSol;
 
                 System.out.println(
@@ -532,10 +555,10 @@ public class RefrigeracaoUsuario {
                 // =========================
 
                 lblEquipamento.setText(
-                        "Modelo: " + eq.getModelo() +
+                        "UC: " + eq.getModelo() +
+                                " | Evap: " + evap.getCodigo() + " " + evap.getVentiladores() + "V" +
                                 " | Gás: " + eq.getGas() +
-                                " | Capacidade: " +
-                                String.format("%.0f kcal/h", eq.getCarga())
+                                " | Carga: " + String.format("%.0f kcal/h", eq.getCarga())
                 );
 
                 this.gasSelecionado = eq.getGas();
@@ -590,6 +613,8 @@ public class RefrigeracaoUsuario {
 
         return maisProximo;
     }
+
+
 
     private String definirGas(String tipoCamara) {
 

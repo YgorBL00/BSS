@@ -12,17 +12,38 @@ public class UCService {
     public void imprimirTodasUnidades() {
 
         String sql = """
-                SELECT 'R22' AS tipo_gas, u.modelo, u.tanque_de_liquido, u.linha_de_liquido, u.linha_de_succao_gas,
-                       c.temp_evaporacao, c.temp_ambiente, c.carga_kcal
-                FROM UC_R22 u
-                LEFT JOIN carga_termica_r22 c ON u.modelo = c.modelo
-                UNION ALL
-                SELECT 'R404A' AS tipo_gas, u.modelo, u.tanque_de_liquido, u.linha_de_liquido, u.linha_de_succao_gas,
-                       c.temp_evaporacao, c.temp_ambiente, c.carga_kcal
-                FROM UC_R404A u
-                LEFT JOIN carga_termica_r404a c ON u.modelo = c.modelo
-                ORDER BY tipo_gas, modelo, temp_evaporacao, temp_ambiente;
-                """;
+    SELECT 'R22' AS tipo_gas, 
+           u.modelo, 
+           u.hp, 
+           u.tanque_de_liquido, 
+           u.linha_de_liquido, 
+           u.linha_de_succao_gas,
+           u.acumulador_succao, 
+           u.separador_oleo,
+           c.temp_evaporacao, 
+           c.temp_ambiente, 
+           c.carga_kcal
+    FROM UC_R22 u
+    LEFT JOIN carga_termica_r22 c ON u.modelo = c.modelo
+
+    UNION ALL
+
+    SELECT 'R404A' AS tipo_gas, 
+           u.modelo, 
+           u.hp, 
+           u.tanque_de_liquido, 
+           u.linha_de_liquido, 
+           u.linha_de_succao_gas,
+           u.acumulador_succao, 
+           u.separador_oleo,
+           c.temp_evaporacao, 
+           c.temp_ambiente, 
+           c.carga_kcal
+    FROM UC_R404A u
+    LEFT JOIN carga_termica_r404a c ON u.modelo = c.modelo
+
+    ORDER BY tipo_gas, modelo, temp_evaporacao, temp_ambiente
+""";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -32,24 +53,44 @@ public class UCService {
             String currentGas = "";
 
             while (rs.next()) {
+
                 String tipoGas = rs.getString("tipo_gas");
                 String modelo = rs.getString("modelo");
                 double tanque = rs.getDouble("tanque_de_liquido");
                 String linhaLiquido = rs.getString("linha_de_liquido");
                 String linhaSucao = rs.getString("linha_de_succao_gas");
+
+                String acumulador = rs.getString("acumulador_succao");
+                String separador = rs.getString("separador_oleo");
+
                 int evap = rs.getInt("temp_evaporacao");
                 int amb = rs.getInt("temp_ambiente");
                 double carga = rs.getDouble("carga_kcal");
 
                 if (!tipoGas.equals(currentGas) || !modelo.equals(currentModel)) {
+
                     currentGas = tipoGas;
                     currentModel = modelo;
+
                     System.out.println("\n===== " + tipoGas + " - Modelo: " + modelo + " =====");
-                    System.out.println("Tanque: " + tanque + " | Linha de Líquido: " + linhaLiquido + " | Linha de Sucção: " + linhaSucao);
+
+                    System.out.println(
+                            "Tanque: " + tanque +
+                                    " | Linha de Líquido: " + linhaLiquido +
+                                    " | Linha de Sucção: " + linhaSucao
+                    );
+
+                    System.out.println(
+                            "Acumulador de Sucção: " + acumulador +
+                                    " | Separador de Óleo: " + separador
+                    );
                 }
 
                 if (rs.getObject("temp_evaporacao") != null) {
-                    System.out.println("Evap: " + evap + "°C | Ambiente: " + amb + "°C | Carga: " + carga + " kcal");
+
+                    System.out.println(
+                            "Evap: " + evap + "°C | Ambiente: " + amb + "°C | Carga: " + carga + " kcal"
+                    );
                 }
             }
 
@@ -67,25 +108,29 @@ public class UCService {
         String tabelaCarga = gas.equals("R404A") ? "carga_termica_r404a" : "carga_termica_r22";
 
         String sql = String.format("""
-            SELECT 
-                u.modelo,
-                u.tanque_de_liquido,
-                u.linha_de_liquido,
-                u.linha_de_succao_gas,
-                c.carga_kcal,
-                c.temp_evaporacao
-            FROM %s u
-            JOIN %s c ON u.modelo = c.modelo
-            WHERE c.temp_ambiente = ?
-            ORDER BY 
-                ABS(c.temp_evaporacao - ?) ASC,
-                CASE 
-                    WHEN c.carga_kcal >= ? THEN 0 
-                    ELSE 1 
-                END,
-                ABS(c.carga_kcal - ?) ASC
-            LIMIT 1
-        """, tabelaUC, tabelaCarga);
+        SELECT 
+            u.modelo,
+            u.hp,
+            u.tanque_de_liquido,
+            u.linha_de_liquido,
+            u.linha_de_succao_gas,
+            u.acumulador_succao,
+            u.separador_oleo,
+            u.valor,
+            c.carga_kcal,
+            c.temp_evaporacao
+        FROM %s u
+        JOIN %s c ON u.modelo = c.modelo
+        WHERE c.temp_ambiente = ?
+        ORDER BY 
+            ABS(c.temp_evaporacao - ?) ASC,
+            CASE 
+                WHEN c.carga_kcal >= ? THEN 0 
+                ELSE 1 
+            END,
+            ABS(c.carga_kcal - ?) ASC
+        LIMIT 1
+    """, tabelaUC, tabelaCarga);
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -98,7 +143,8 @@ public class UCService {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                return new Equipamento(
+
+                Equipamento eq = new Equipamento(
                         rs.getString("modelo"),
                         gas,
                         rs.getDouble("carga_kcal"),
@@ -106,6 +152,13 @@ public class UCService {
                         rs.getString("linha_de_liquido"),
                         rs.getString("linha_de_succao_gas")
                 );
+
+                eq.setHp(rs.getDouble("hp"));
+                eq.setAcumuladorSuccao(rs.getString("acumulador_succao"));
+                eq.setSeparadorOleo(rs.getString("separador_oleo"));
+                eq.setValor(rs.getDouble("valor"));
+
+                return eq;
             }
 
         } catch (Exception e) {

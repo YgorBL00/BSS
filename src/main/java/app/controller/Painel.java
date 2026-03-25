@@ -78,4 +78,23 @@ public class Painel implements Initializable {
             e.printStackTrace();
         }
     }
+
+    private void trocarTela(String fxml, int largura, int altura) throws Exception {
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
+        Parent root = loader.load();
+
+        Stage stage = (Stage) iniciar.getScene().getWindow();
+        stage.setScene(new Scene(root, largura, altura));
+    }
+
+    @FXML
+    private void sairSistema() {
+
+        try {
+            trocarTela("/app/login.fxml", 900, 600);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

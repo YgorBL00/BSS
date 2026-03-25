@@ -129,6 +129,10 @@
                     fx:id="btnAvancar"
                     onAction="#avancar"/>
 
+            <Button text="Voltar"
+                    onAction="#voltarPainel"
+                    prefWidth="120"/>
+
         </VBox>
 
     </children>
