@@ -64,11 +64,11 @@ public class PainelUsuario implements Initializable {
         card.setCursor(Cursor.HAND);
 
         card.setStyle("""
-                -fx-background-color: white;
-                -fx-background-radius: 12;
-                -fx-border-radius: 12;
-                -fx-border-color: #d0d7e2;
-                """);
+            -fx-background-color: white;
+            -fx-background-radius: 12;
+            -fx-border-radius: 12;
+            -fx-border-color: #d0d7e2;
+            """);
 
         Label label = new Label(titulo);
         label.setStyle("-fx-font-size: 15; -fx-text-fill: #23336f;");
@@ -77,29 +77,20 @@ public class PainelUsuario implements Initializable {
 
         card.setOnMouseEntered(e ->
                 card.setStyle("""
-                        -fx-background-color: #f5f8ff;
-                        -fx-background-radius: 12;
-                        -fx-border-radius: 12;
-                        -fx-border-color: #245edb;
-                        """)
+                    -fx-background-color: #f5f8ff;
+                    -fx-background-radius: 12;
+                    -fx-border-radius: 12;
+                    -fx-border-color: #245edb;
+                    """)
         );
 
         card.setOnMouseExited(e ->
                 card.setStyle("""
-                        -fx-background-color: white;
-                        -fx-background-radius: 12;
-                        -fx-border-radius: 12;
-                        -fx-border-color: #d0d7e2;
-                        """)
-        );
-
-        card.setOnMouseExited(e ->
-                card.setStyle("""
-                        -fx-background-color: white;
-                        -fx-background-radius: 12;
-                        -fx-border-radius: 12;
-                        -fx-border-color: #d0d7e2;
-                        """)
+                    -fx-background-color: white;
+                    -fx-background-radius: 12;
+                    -fx-border-radius: 12;
+                    -fx-border-color: #d0d7e2;
+                    """)
         );
 
         card.setOnMouseClicked(e -> {
@@ -111,7 +102,7 @@ public class PainelUsuario implements Initializable {
                     break;
 
                 case "Projeto Salvos":
-                    abrirTela("/app/usuario/caixote.fxml");
+                    abrirTela("/app/usuario/projetos-salvos.fxml");
                     break;
 
                 case "Calculo De Paineis":
@@ -121,11 +112,8 @@ public class PainelUsuario implements Initializable {
 
         });
 
-
         cardsContainer.getChildren().add(card);
     }
-
-
 
     private void abrirTela(String fxml) {
         try {
@@ -133,11 +121,17 @@ public class PainelUsuario implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = loader.load();
 
-            CaixoteUsuario controller = loader.getController();
-            controller.setUsuario(usuario);
+            Object controller = loader.getController();
+
+            if (controller instanceof CaixoteUsuario) {
+                ((CaixoteUsuario) controller).setUsuario(usuario);
+            }
+
+            if (controller instanceof CalculoPainelUsuario) {
+                ((CalculoPainelUsuario) controller).setUsuario(usuario);
+            }
 
             Stage stage = (Stage) conteudo.getScene().getWindow();
-
             stage.setScene(new Scene(root, 1150, 750));
 
         } catch (Exception e) {

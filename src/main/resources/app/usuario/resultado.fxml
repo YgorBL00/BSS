@@ -97,14 +97,23 @@
 
             <!-- BOTÕES -->
 
+            <!-- BOTÕES -->
+
             <HBox spacing="20" alignment="CENTER">
 
-                <Button text="Voltar" fx:id="btnVoltar" onAction="#voltarRefrigeracao"/>
+                <Button text="Voltar"
+                        fx:id="btnVoltar"
+                        onAction="#voltarRefrigeracao"/>
+
+                <Button text="Salvar Projeto"
+                        fx:id="btnSalvarProjeto"
+                        onAction="#salvarProjeto"/>
 
                 <Button text="Gerar Orçamento"
                         fx:id="btnGerarOrcamento"/>
 
-                <Button text="Exportar PDF" onAction="#exportarPDF"/>
+                <Button text="Exportar PDF"
+                        onAction="#exportarPDF"/>
 
             </HBox>
 

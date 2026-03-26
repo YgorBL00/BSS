@@ -34,11 +34,11 @@
             <!-- BLOCO 1 -->
             <!-- =============================== -->
 
-            <VBox spacing="15"
+            <VBox spacing="5"
                   style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:5; -fx-background-radius:5;">
 
                 <padding>
-                    <Insets top="15" right="20" bottom="20" left="20"/>
+                    <Insets top="5" right="20" bottom="20" left="20"/>
                 </padding>
 
                 <Label text="Dados da Câmara"
@@ -69,11 +69,11 @@
             <!-- BLOCO 2 -->
             <!-- =============================== -->
 
-            <VBox spacing="15"
+            <VBox spacing="5"
                   style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:5; -fx-background-radius:5;">
 
                 <padding>
-                    <Insets top="15" right="20" bottom="20" left="20"/>
+                    <Insets top="5" right="20" bottom="20" left="20"/>
                 </padding>
 
                 <Label text="Parâmetros de Refrigeração"

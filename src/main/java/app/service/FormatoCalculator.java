@@ -2,7 +2,9 @@ package app.service;
 
 import app.model.Porta;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FormatoCalculator {
 
@@ -21,6 +23,8 @@ public class FormatoCalculator {
             this.altura = altura;
         }
     }
+
+
 
     public static class ResultadoFormato {
 
@@ -111,7 +115,7 @@ public class FormatoCalculator {
             areaTetoM2 = comprimento * largura;
 
             // piso
-            areaPisoM2 = requerPiso ? (comprimento * largura) : 0;
+            areaPisoM2 = comprimento * largura;
 
             // desperdício
             desperdicioM2 = 0; // se não precisar calcular recortes separados, ou calcular apenas recortes reais
@@ -139,7 +143,7 @@ public class FormatoCalculator {
         ResultadoFormato r = new ResultadoFormato();
         r.setDimensoes(C_ext, L_ext, A_ext);
 
-        double C = C_ext - 2 * E;
+        double C = C_ext;
         double L = L_ext - 2 * E;
         double alturaParede = A_ext - E - (temPiso ? E : 0);
         r.alturaParedeReal = alturaParede;
@@ -161,6 +165,7 @@ public class FormatoCalculator {
                 r.recortesParede.add(new Recorte(recorte, alturaParede));
             }
         }
+
 
         // =============================
         // TETO
@@ -255,6 +260,120 @@ public class FormatoCalculator {
         return r;
     }
 
+    public static String gerarMemorial(
+            double C,
+            double L,
+            double A,
+            int espessura,
+            ResultadoFormato r
+    ) {
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(String.format("%.2f x %.2f x %.2f\n", C, L, A));
+        sb.append("\n");
+
+        // =========================
+        // PAREDES
+        // =========================
+        Map<String, Integer> paineisParede = new LinkedHashMap<>();
+
+        int inteiros = r.paineisParede - r.recortesParede.size();
+
+        if (inteiros > 0) {
+
+            String chave = String.format("1,15x%.2f", r.alturaParedeReal);
+            paineisParede.put(chave, inteiros);
+        }
+
+        for (Recorte rec : r.recortesParede) {
+
+            String chave = String.format("%.2fx%.2f", rec.largura, rec.altura);
+
+            paineisParede.merge(chave, 1, Integer::sum);
+        }
+
+        for (Map.Entry<String, Integer> e : paineisParede.entrySet()) {
+
+            int qtd = e.getValue();
+
+            sb.append(qtd)
+                    .append(qtd > 1 ? " Painéis PIR " : " Painel PIR ")
+                    .append(espessura)
+                    .append("mm ")
+                    .append(e.getKey())
+                    .append(" - Paredes\n");
+        }
+
+        // =========================
+        // TETO
+        // =========================
+        Map<String, Integer> paineisTeto = new LinkedHashMap<>();
+
+        int inteirosTeto = r.paineisTeto - r.recortesTeto.size();
+
+        if (inteirosTeto > 0) {
+
+            String chave = String.format("1,15x%.2f", r.alturaTetoReal);
+            paineisTeto.put(chave, inteirosTeto);
+        }
+
+        for (Recorte rec : r.recortesTeto) {
+
+            String chave = String.format("%.2fx%.2f", rec.largura, rec.altura);
+
+            paineisTeto.merge(chave, 1, Integer::sum);
+        }
+
+        for (Map.Entry<String, Integer> e : paineisTeto.entrySet()) {
+
+            int qtd = e.getValue();
+
+            sb.append(qtd)
+                    .append(qtd > 1 ? " Painéis PIR " : " Painel PIR ")
+                    .append(espessura)
+                    .append("mm ")
+                    .append(e.getKey())
+                    .append(" - Teto\n");
+        }
+
+        // =========================
+        // PISO
+        // =========================
+        if (r.requerPiso) {
+
+            Map<String, Integer> paineisPiso = new LinkedHashMap<>();
+
+            int inteirosPiso = r.paineisPiso - r.recortesPiso.size();
+
+            if (inteirosPiso > 0) {
+
+                String chave = String.format("1,15x%.2f", r.alturaPisoReal);
+                paineisPiso.put(chave, inteirosPiso);
+            }
+
+            for (Recorte rec : r.recortesPiso) {
+
+                String chave = String.format("%.2fx%.2f", rec.largura, rec.altura);
+
+                paineisPiso.merge(chave, 1, Integer::sum);
+            }
+
+            for (Map.Entry<String, Integer> e : paineisPiso.entrySet()) {
+
+                int qtd = e.getValue();
+
+                sb.append(qtd)
+                        .append(qtd > 1 ? " Painéis PIR " : " Painel PIR ")
+                        .append(espessura)
+                        .append("mm ")
+                        .append(e.getKey())
+                        .append(" - Piso\n");
+            }
+        }
+
+        return sb.toString();
+    }
     // =============================
     // AUXILIAR: PERFIL PORTA
     // =============================
@@ -265,4 +384,5 @@ public class FormatoCalculator {
         double metros = 2 * altura + largura;
         return (int) Math.ceil(metros / 3.0);
     }
+
 }

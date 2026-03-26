@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="app.controller.vendedor.ProjetoSalvoUsuario"
+            prefHeight="720"
+            prefWidth="1050"
+            style="-fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #b3e0ff, white);">
+
+    <children>
+
+        <VBox spacing="20"
+              alignment="TOP_CENTER"
+              AnchorPane.topAnchor="0"
+              AnchorPane.leftAnchor="0"
+              AnchorPane.rightAnchor="0"
+              AnchorPane.bottomAnchor="0">
+
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+
+            <!-- TÍTULO -->
+
+            <Label text="Projetos Salvos"
+                   style="-fx-font-size:26; -fx-text-fill:#23336f; -fx-font-weight:bold;">
+                <padding>
+                    <Insets bottom="30"/>
+                </padding>
+            </Label>
+
+            <!-- TABELA -->
+
+            <VBox spacing="10"
+                  style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:5; -fx-background-radius:5;">
+
+                <padding>
+                    <Insets top="15" right="15" bottom="15" left="15"/>
+                </padding>
+
+                <Label text="Lista de Projetos"
+                       style="-fx-font-size:16; -fx-font-weight:bold;"/>
+
+                <TableView fx:id="tableProjetos" prefHeight="500">
+
+                    <columns>
+
+                        <TableColumn text="ID"
+                                     fx:id="colId"
+                                     prefWidth="80"/>
+
+                        <TableColumn text="Cliente"
+                                     fx:id="colCliente"
+                                     prefWidth="260"/>
+
+                        <TableColumn text="Dimensões"
+                                     fx:id="colDimensoes"
+                                     prefWidth="200"/>
+
+                        <TableColumn text="Valor Venda"
+                                     fx:id="colValor"
+                                     prefWidth="150"/>
+
+                        <TableColumn text="Data"
+                                     fx:id="colData"
+                                     prefWidth="200"/>
+
+                    </columns>
+
+                </TableView>
+
+            </VBox>
+
+            <!-- BOTÕES -->
+
+            <HBox spacing="20" alignment="CENTER">
+
+                <Button text="Abrir PDF"
+                        fx:id="btnAbrirPDF"
+                        onAction="#abrirPDF"/>
+
+                <Button text="Atualizar"
+                        onAction="#carregarProjetos"/>
+
+                <Button text="Voltar"
+                        onAction="#voltar"/>
+
+            </HBox>
+
+        </VBox>
+
+    </children>
+
+</AnchorPane>

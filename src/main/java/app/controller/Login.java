@@ -23,6 +23,7 @@ import java.util.ResourceBundle;
 public class Login implements Initializable {
 
     public VBox conteudo;
+    public Button btnLogin;
 
     @FXML
     private TextField emailField;
@@ -32,6 +33,10 @@ public class Login implements Initializable {
 
     @FXML
     private Label mensagemErro;
+
+    @FXML
+    private ProgressIndicator loadingIndicator;
+
 
 
     private static final String ARQUIVO_EMAIL = "login.txt";
@@ -48,7 +53,6 @@ public class Login implements Initializable {
 
     @FXML
     private void fazerLogin() {
-
         String email = emailField.getText().trim();
         String senha = senhaField.getText();
 
@@ -57,29 +61,38 @@ public class Login implements Initializable {
             return;
         }
 
-        AuthService authService = new AuthService();
-        Usuario usuario = authService.login(email, senha);
+        // Mostra o loading
+        loadingIndicator.setVisible(true);
+        btnLogin.setDisable(true); // Desabilita o botão para evitar clique múltiplo
+        mensagemErro.setText("");
 
-        if (usuario != null) {
+        // Executa o login em outra thread para não travar a UI
+        new Thread(() -> {
+            AuthService authService = new AuthService();
+            Usuario usuario = authService.login(email, senha);
 
-            salvarEmail(usuario.getEmail());
+            // Volta para a thread da UI
+            javafx.application.Platform.runLater(() -> {
+                loadingIndicator.setVisible(false);
+                btnLogin.setDisable(false);
 
-            try {
+                if (usuario != null) {
+                    salvarEmail(usuario.getEmail());
 
-                // verifica o cargo
-                if (usuario.getCargo().equalsIgnoreCase("ADMIN")) {
-                    abrirTela("/app/admin/painel-admin.fxml", usuario);
+                    try {
+                        if (usuario.getCargo().equalsIgnoreCase("ADMIN")) {
+                            abrirTela("/app/admin/painel-admin.fxml", usuario);
+                        } else {
+                            abrirTela("/app/usuario/painel-usuario.fxml", usuario);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 } else {
-                    abrirTela("/app/usuario/painel-usuario.fxml", usuario);
+                    mensagemErro.setText("Email ou senha inválidos.");
                 }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        } else {
-            mensagemErro.setText("Email ou senha inválidos.");
-        }
+            });
+        }).start();
     }
 
     private void abrirTela(String fxml, Usuario usuario) {

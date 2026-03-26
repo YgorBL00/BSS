@@ -112,4 +112,21 @@ public class PainelAdmin implements Initializable {
             e.printStackTrace();
         }
     }
+
+    @FXML
+    private void sair() {
+
+        try {
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/app/login.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) conteudo.getScene().getWindow();
+            stage.setScene(new Scene(root, 1150, 750));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 }

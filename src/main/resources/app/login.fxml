@@ -17,39 +17,14 @@
           AnchorPane.rightAnchor="0.0">
 
         <!-- CARD -->
-        <VBox fx:id="conteudo"
-              alignment="CENTER"
-              spacing="12"
-              maxWidth="280"
-              style="-fx-background-color: white;
-                     -fx-background-radius: 12;
-                     -fx-padding: 30;
-                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15, 0, 0, 5);">
-
-            <Label text="LOGIN"
-                   style="-fx-font-size: 24; -fx-text-fill: #23336f;"/>
-
-            <TextField fx:id="emailField"
-                       promptText="Email"
-                       prefWidth="220"/>
-
-            <PasswordField fx:id="senhaField"
-                           promptText="Senha"
-                           prefWidth="220"/>
-
-            <Button fx:id="btnLogin"
-                    text="Entrar"
-                    prefWidth="160"
-                    defaultButton="true"
-                    onAction="#fazerLogin"
-                    style="-fx-background-color: #245edb;
-                           -fx-text-fill: white;
-                           -fx-background-radius: 24;"/>
-
-            <Label fx:id="mensagemErro"
-                   style="-fx-text-fill: red;"
-                   wrapText="true"/>
-
+        <VBox fx:id="conteudo" alignment="CENTER" spacing="12" maxWidth="280" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15, 0, 0, 5);">
+            <Label text="LOGIN" style="-fx-font-size: 24; -fx-text-fill: #23336f;"/>
+            <TextField fx:id="emailField" promptText="Email" prefWidth="220"/>
+            <PasswordField fx:id="senhaField" promptText="Senha" prefWidth="220"/>
+            <Button fx:id="btnLogin" text="Entrar" prefWidth="160" defaultButton="true" onAction="#fazerLogin" style="-fx-background-color: #245edb; -fx-text-fill: white; -fx-background-radius: 24;"/>
+            <ProgressIndicator fx:id="loadingIndicator" visible="false"
+                               prefWidth="24" prefHeight="24"/>
+            <Label fx:id="mensagemErro" style="-fx-text-fill: red;" wrapText="true"/>
         </VBox>
     </VBox>
 

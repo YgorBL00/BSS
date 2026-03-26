@@ -3,6 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.Region?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="app.controller.admin.PainelAdmin"
@@ -45,6 +46,20 @@
                       prefTileWidth="260"
                       prefTileHeight="140"
                       alignment="TOP_CENTER"/>
+
+            <!-- EMPURRA O BOTÃO PARA BAIXO -->
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <!-- BOTÃO SAIR -->
+            <Button text="Sair"
+                    onAction="#sair"
+                    prefWidth="140">
+
+                <VBox.margin>
+                    <Insets top="5"/>
+                </VBox.margin>
+
+            </Button>
 
         </VBox>
 
