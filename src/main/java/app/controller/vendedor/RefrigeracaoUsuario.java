@@ -6,6 +6,7 @@ import app.service.EvaporadoraService;
 import app.service.FormatoCalculator;
 import app.service.ProdutoService;
 import app.service.UCService;
+import app.util.NumeroUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -47,6 +48,7 @@ public class RefrigeracaoUsuario {
     private int espessura;
     private List<Porta> portas;
     private List<Produto> todosProdutos;
+    private boolean calculado = false;
 
 
     private double cargaCalculada;
@@ -92,8 +94,27 @@ public class RefrigeracaoUsuario {
         lblCliente.setText(cliente);
     }
 
-    public void setDimensoes(String dim) {
-        lblDimensoes.setText(dim);
+    public void setDimensoes(double c, double l, double a) {
+
+        lblDimensoes.setText(
+                NumeroUtil.formatar(c) + " x " +
+                        NumeroUtil.formatar(l) + " x " +
+                        NumeroUtil.formatar(a)
+        );
+    }
+
+    private boolean camposPreenchidos() {
+
+        return !txtTempInterna.getText().isEmpty()
+                && cbTempAmbiente.getValue() != null
+                && !txtTempEntrada.getText().isEmpty()
+                && !txtCargaProduto.getText().isEmpty()
+                && cbVariedade.getValue() != null
+                && cbProduto.getValue() != null
+                && !txtTempoProcesso.getText().isEmpty()
+                && !txtDistQuadroUC.getText().isEmpty()
+                && !txtDistQuadroEU.getText().isEmpty()
+                && !txtDistUEUC.getText().isEmpty();
     }
 
     @FXML
@@ -102,6 +123,11 @@ public class RefrigeracaoUsuario {
         // 1️⃣ Inicializa ComboBox de temperatura ambiente
         cbTempAmbiente.setItems(FXCollections.observableArrayList(32, 35, 38, 43));
         cbTempAmbiente.setValue(32); // valor padrão
+
+        txtDistQuadroUC.setText("5");
+        txtDistQuadroEU.setText("5");
+        txtDistUEUC.setText("5");
+        txtAlturaInfra.setText("3");
 
         // 2️⃣ Inicializa ComboBox de variedades
         cbVariedade.setItems(FXCollections.observableArrayList(
@@ -219,85 +245,6 @@ public class RefrigeracaoUsuario {
         cbProduto.setItems(lista);
     }
 
-    @FXML
-    public void abrirResultado() {
-        try {
-
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/app/usuario/resultado.fxml")
-            );
-
-
-            Parent root = loader.load();
-
-            ResultadoUsuario controller = loader.getController();
-
-            controller.setDadosRefrigeracao(
-                    cargaCalculada,
-                    ambienteSelecionado,
-                    evapCalculada,
-                    gasSelecionado
-            );
-
-            controller.carregarDados(
-                    usuario,
-                    resultados,
-                    espessura,
-                    lblCliente.getText(),
-                    lblTipo.getText(),
-                    lblDimensoes.getText(),
-                    portas
-            );
-
-            controller.setTipoCamara(tipoCamara);
-            controller.setDistancias(
-                    Double.parseDouble(txtDistQuadroUC.getText()),
-                    Double.parseDouble(txtDistQuadroEU.getText()),
-                    Double.parseDouble(txtDistUEUC.getText())
-            );
-            controller.setEquipamento(equipamentoSelecionado);
-            controller.setEvaporadora(evapSelecionada); // ✅ aqui
-            controller.setTensao(tensao);
-
-            Stage stage = (Stage) btnOrcamento.getScene().getWindow();
-            stage.setScene(new Scene(root, 1150, 750));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    public void voltarCaixote() {
-
-        try {
-
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/app/usuario/caixote.fxml")
-            );
-
-            Parent root = loader.load();
-
-            CaixoteUsuario controller = loader.getController();
-
-            controller.setUsuario(usuario);
-            controller.setResultados(resultados);
-            controller.setEspessura(espessura);
-            controller.setPortas(portas);
-
-            controller.setCliente(lblCliente.getText());
-            controller.setDimensoes(lblDimensoes.getText());
-            controller.setTipoCamara(tipoCamara);
-            controller.setTensao(tensao);
-
-            Stage stage = (Stage) btnOrcamento.getScene().getWindow();
-            stage.setScene(new Scene(root, 1150, 750));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void setPortas(List<Porta> portas) {
 
         this.portas = portas;
@@ -407,6 +354,8 @@ public class RefrigeracaoUsuario {
             this.ambienteSelecionado = tempAmbiente;
 
             String gas = definirGas(this.tipoCamara);
+
+            calculado = true;
 
             UCService service = new UCService();
 
@@ -614,7 +563,103 @@ public class RefrigeracaoUsuario {
         return maisProximo;
     }
 
+    @FXML
+    public void abrirResultado() {
 
+        if (!camposPreenchidos()) {
+
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setHeaderText("Campos obrigatórios");
+            alert.setContentText("Preencha todos os campos antes de avançar.");
+            alert.showAndWait();
+            return;
+        }
+
+        if (!calculado) {
+
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setHeaderText("Cálculo não realizado");
+            alert.setContentText("Clique em 'Calcular Refrigeração' antes de avançar.");
+            alert.showAndWait();
+            return;
+        }
+
+        try {
+
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/app/usuario/resultado.fxml")
+            );
+
+
+            Parent root = loader.load();
+
+            ResultadoUsuario controller = loader.getController();
+
+            controller.setDadosRefrigeracao(
+                    cargaCalculada,
+                    ambienteSelecionado,
+                    evapCalculada,
+                    gasSelecionado
+            );
+
+            controller.carregarDados(
+                    usuario,
+                    resultados,
+                    espessura,
+                    lblCliente.getText(),
+                    lblTipo.getText(),
+                    lblDimensoes.getText(),
+                    portas
+            );
+
+            controller.setTipoCamara(tipoCamara);
+            controller.setDistancias(
+                    Double.parseDouble(txtDistQuadroUC.getText()),
+                    Double.parseDouble(txtDistQuadroEU.getText()),
+                    Double.parseDouble(txtDistUEUC.getText())
+            );
+            controller.setEquipamento(equipamentoSelecionado);
+            controller.setEvaporadora(evapSelecionada); // ✅ aqui
+            controller.setTensao(tensao);
+
+            Stage stage = (Stage) btnOrcamento.getScene().getWindow();
+            stage.setScene(new Scene(root, 1150, 750));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void voltarCaixote() {
+
+        try {
+
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/app/usuario/caixote.fxml")
+            );
+
+            Parent root = loader.load();
+
+            CaixoteUsuario controller = loader.getController();
+
+            controller.setUsuario(usuario);
+            controller.setResultados(resultados);
+            controller.setEspessura(espessura);
+            controller.setPortas(portas);
+
+            controller.setCliente(lblCliente.getText());
+            controller.setDimensoes(lblDimensoes.getText());
+            controller.setTipoCamara(tipoCamara);
+            controller.setTensao(tensao);
+
+            Stage stage = (Stage) btnOrcamento.getScene().getWindow();
+            stage.setScene(new Scene(root, 1150, 750));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private String definirGas(String tipoCamara) {
 

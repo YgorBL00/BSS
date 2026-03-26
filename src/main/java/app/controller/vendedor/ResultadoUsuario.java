@@ -4,6 +4,7 @@ import app.model.*;
 import app.service.EvaporadoraService;
 import app.service.FormatoCalculator;
 import app.service.MaterialService;
+import app.util.NumeroUtil;
 import com.itextpdf.text.pdf.PdfPTable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -267,6 +268,8 @@ public class ResultadoUsuario {
         colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
 
+
+
         // Formatter brasileiro
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(new Locale("pt", "BR"));
         symbols.setDecimalSeparator(',');
@@ -331,11 +334,15 @@ public class ResultadoUsuario {
         }
     }
 
-    public void setDimensoes(String dimensoes) {
-        this.dimensoes = dimensoes;
+    public void setDimensoes(double c, double l, double a) {
+
+        this.dimensoes =
+                NumeroUtil.formatar(c) + " x " +
+                        NumeroUtil.formatar(l) + " x " +
+                        NumeroUtil.formatar(a);
 
         if (lblDimensoes != null) {
-            lblDimensoes.setText(dimensoes);
+            lblDimensoes.setText(this.dimensoes);
         }
     }
 
@@ -984,7 +991,13 @@ public class ResultadoUsuario {
             controller.setTensao(tensao);
 
             controller.setCliente(lblCliente.getText());
-            controller.setDimensoes(lblDimensoes.getText());
+            String[] partes = lblDimensoes.getText().split(" x ");
+
+            double c = Double.parseDouble(partes[0].replace(",", "."));
+            double l = Double.parseDouble(partes[1].replace(",", "."));
+            double a = Double.parseDouble(partes[2].replace(",", "."));
+
+            controller.setDimensoes(c, l, a);
             controller.setTipoCamara(lblTipo.getText());
 
             Stage stage = (Stage) btnVoltar.getScene().getWindow();

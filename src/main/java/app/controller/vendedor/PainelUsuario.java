@@ -125,19 +125,23 @@ public class PainelUsuario implements Initializable {
         cardsContainer.getChildren().add(card);
     }
 
-
-
     private void abrirTela(String fxml) {
         try {
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = loader.load();
 
-            CaixoteUsuario controller = loader.getController();
-            controller.setUsuario(usuario);
+            Object controller = loader.getController();
+
+            if (controller instanceof CaixoteUsuario) {
+                ((CaixoteUsuario) controller).setUsuario(usuario);
+            }
+
+            if (controller instanceof CalculoPainelUsuario) {
+                ((CalculoPainelUsuario) controller).setUsuario(usuario);
+            }
 
             Stage stage = (Stage) conteudo.getScene().getWindow();
-
             stage.setScene(new Scene(root, 1150, 750));
 
         } catch (Exception e) {

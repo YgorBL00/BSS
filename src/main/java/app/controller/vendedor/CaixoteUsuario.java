@@ -143,6 +143,7 @@ public class CaixoteUsuario {
         rbCongelado.setToggleGroup(grupoCamara);
         rbResfriado.setToggleGroup(grupoCamara);
 
+
         // Espessuras de painel disponíveis
         cbEspessura.getItems().addAll(50, 70, 100, 120, 150);
 
@@ -209,6 +210,44 @@ public class CaixoteUsuario {
         try {
 
             validarCampos();
+
+            if (portas.isEmpty()) {
+
+                Alert alerta = new Alert(Alert.AlertType.CONFIRMATION);
+                alerta.setTitle("Aviso");
+                alerta.setHeaderText("Nenhuma porta configurada");
+                alerta.setContentText("A câmara não possui portas configuradas.\nDeseja continuar mesmo assim?");
+
+                ButtonType continuar = new ButtonType("Continuar");
+                ButtonType cancelar = new ButtonType("Cancelar");
+
+                alerta.getButtonTypes().setAll(continuar, cancelar);
+
+                if (alerta.showAndWait().orElse(cancelar) == cancelar) {
+                    return;
+                }
+            }
+
+            if (rbCongelado.isSelected() && cbEspessura.getValue() < 100) {
+
+                Alert alerta = new Alert(Alert.AlertType.CONFIRMATION);
+                alerta.setTitle("Aviso Técnico");
+                alerta.setHeaderText("Espessura de painel baixa para congelados");
+                alerta.setContentText(
+                        "Para câmaras de CONGELADOS o recomendado é PIR mínimo de 100mm.\n\n" +
+                                "Espessura selecionada: " + cbEspessura.getValue() + " mm\n\n" +
+                                "Deseja continuar mesmo assim?"
+                );
+
+                ButtonType continuar = new ButtonType("Continuar");
+                ButtonType voltar = new ButtonType("Voltar");
+
+                alerta.getButtonTypes().setAll(continuar, voltar);
+
+                if (alerta.showAndWait().orElse(voltar) == voltar) {
+                    return;
+                }
+            }
 
             double C = Double.parseDouble(txtComprimento.getText().replace(",", "."));
             double L = Double.parseDouble(txtLargura.getText().replace(",", "."));
@@ -288,11 +327,11 @@ public class CaixoteUsuario {
 
             controller.setCliente(txtCliente.getText());
 
-            controller.setDimensoes(
-                    txtComprimento.getText() + " x " +
-                            txtLargura.getText() + " x " +
-                            txtAltura.getText()
-            );
+            double c = Double.parseDouble(txtComprimento.getText().replace(",", "."));
+            double l = Double.parseDouble(txtLargura.getText().replace(",", "."));
+            double a = Double.parseDouble(txtAltura.getText().replace(",", "."));
+
+            controller.setDimensoes(c, l, a);
 
             tipoCamara = rbCongelado.isSelected() ? "CONGELADOS" : "RESFRIADOS";
             controller.setTipoCamara(tipoCamara);

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+    <base uri="https://ddbmgpubuvhsialvgpen.supabase.co/storage/v1/object/public/APP0/update/"/>
+
+    <files>
+
+        <file path="BSS-standalone.jar"/>
+
+    </files>
+
+</configuration>
