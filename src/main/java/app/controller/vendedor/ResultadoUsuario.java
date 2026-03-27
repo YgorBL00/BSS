@@ -4,12 +4,7 @@ import app.model.*;
 import app.service.EvaporadoraService;
 import app.service.FormatoCalculator;
 import app.service.MaterialService;
-import app.service.ProjetoService;
-import app.util.NumeroUtil;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,20 +13,15 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
-import java.awt.*;
-import java.io.FileOutputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
 
 import javafx.stage.FileChooser;
 import java.io.File;
-import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -82,7 +72,7 @@ public class ResultadoUsuario {
     private double cargaKcal;
     double cargaComSeguranca = cargaKcal * 1.10;
     private Evaporadora evaporadora;
-    private String memorial;
+
 
     public void setDadosRefrigeracao(double carga, int amb, double evap, String gas) {
         this.cargaNecessaria = carga;
@@ -95,10 +85,6 @@ public class ResultadoUsuario {
         this.tensao = tensao;
         System.out.println("Tensao recebida: " + tensao);
         preencherTabela(); // 🔥 atualizar tabela
-    }
-
-    public void setMemorial(String memorial) {
-        this.memorial = memorial;
     }
 
     public void setEquipamento(Equipamento equipamentoSelecionado) {
@@ -120,7 +106,9 @@ public class ResultadoUsuario {
     public void exportarPDF() {
 
         try {
-
+            // =========================
+            // ABRIR EXPLORADOR (SALVAR COMO)
+            // =========================
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Salvar Orçamento PDF");
 
@@ -128,26 +116,80 @@ public class ResultadoUsuario {
                     new FileChooser.ExtensionFilter("Arquivo PDF", "*.pdf")
             );
 
+            // Define nome do arquivo
             String nomeCliente = lblCliente.getText();
-
             if (nomeCliente == null || nomeCliente.trim().isEmpty()) {
                 nomeCliente = "orcamento";
             }
-
             fileChooser.setInitialFileName("orcamento_" + nomeCliente + ".pdf");
 
             File file = fileChooser.showSaveDialog(btnVoltar.getScene().getWindow());
 
-            if (file == null) return;
+            if (file == null) return; // se cancelar
 
-            gerarPDF(file);
+            String caminho = file.getAbsolutePath();
 
-            Desktop.getDesktop().open(file);
+            // =========================
+            // CRIAR PDF
+            // =========================
+            com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
+            com.itextpdf.text.pdf.PdfWriter.getInstance(doc, new java.io.FileOutputStream(caminho));
+            doc.open();
+
+            // =========================
+            // TÍTULO
+            // =========================
+            doc.add(new com.itextpdf.text.Paragraph("ORÇAMENTO DE CÂMARA FRIGORÍFICA\n\n"));
+
+            // =========================
+            // DADOS DO CLIENTE
+            // =========================
+            doc.add(new com.itextpdf.text.Paragraph("Cliente: " + lblCliente.getText()));
+            doc.add(new com.itextpdf.text.Paragraph("Tipo: " + lblTipo.getText()));
+            doc.add(new com.itextpdf.text.Paragraph("Dimensões: " + lblDimensoes.getText()));
+            doc.add(new com.itextpdf.text.Paragraph("\n"));
+
+            // =========================
+            // TABELA (AGORA COM UNIDADE)
+            // =========================
+            PdfPTable tabela = new PdfPTable(4); // 4 colunas: Item, Descrição, Qtd, Unidade
+            tabela.setWidthPercentage(100);
+
+            tabela.addCell("Item");
+            tabela.addCell("Descrição");
+            tabela.addCell("Qtd");
+            tabela.addCell("Unidade");
+
+            for (ItemTabela item : tableMateriais.getItems()) {
+                tabela.addCell(item.getItem());
+                tabela.addCell(item.getDescricao());
+                tabela.addCell(String.valueOf(item.getQuantidade()));
+                tabela.addCell(item.getUnidade());
+            }
+
+            doc.add(tabela);
+
+            doc.close();
+
+            // =========================
+            // ABRIR PDF AUTOMATICAMENTE
+            // =========================
+            java.awt.Desktop.getDesktop().open(file);
+
+            // =========================
+            // ALERTA
+            // =========================
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("PDF gerado");
+            alert.setHeaderText(null);
+            alert.setContentText("PDF salvo em:\n" + caminho);
+            alert.showAndWait();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     // =============================
     // CLASSE DA TABELA
@@ -225,8 +267,6 @@ public class ResultadoUsuario {
         colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
 
-
-
         // Formatter brasileiro
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(new Locale("pt", "BR"));
         symbols.setDecimalSeparator(',');
@@ -291,15 +331,11 @@ public class ResultadoUsuario {
         }
     }
 
-    public void setDimensoes(double c, double l, double a) {
-
-        this.dimensoes =
-                NumeroUtil.formatar(c) + " x " +
-                        NumeroUtil.formatar(l) + " x " +
-                        NumeroUtil.formatar(a);
+    public void setDimensoes(String dimensoes) {
+        this.dimensoes = dimensoes;
 
         if (lblDimensoes != null) {
-            lblDimensoes.setText(this.dimensoes);
+            lblDimensoes.setText(dimensoes);
         }
     }
 
@@ -392,25 +428,41 @@ public class ResultadoUsuario {
                 .findFirst()
                 .orElse(null);
 
-
         // =========================
-        // PAINÉIS (TOTAL GERAL)
+        // PAINÉIS
         // =========================
         if (painelMaterial != null) {
-
-            double totalM2 = resultados.areaParedesM2 + resultados.areaTetoM2;
-
-            if (resultados.requerPiso) {
-                totalM2 += resultados.areaPisoM2;
-            }
-
+            // Paredes
+            double valorParede = painelMaterial.getValor() * resultados.areaParedesM2;
             lista.add(new ItemTabela(
                     "Painel",
-                    "Painel PIR" + espessura + "mm",
-                    (int) Math.ceil(totalM2),
+                    "Painel PIR " + espessura + "mm - PAREDE",
+                    (int) Math.ceil(resultados.areaParedesM2),
                     "m²",
                     painelMaterial.getValor()
             ));
+
+            // Teto
+            double valorTeto = painelMaterial.getValor() * resultados.areaTetoM2;
+            lista.add(new ItemTabela(
+                    "Painel",
+                    "Painel PIR " + espessura + "mm - TETO",
+                    (int) Math.ceil(resultados.areaTetoM2),
+                    "m²",
+                    painelMaterial.getValor()
+            ));
+
+            // Piso
+            if (resultados.requerPiso) {
+                double valorPiso = painelMaterial.getValor() * resultados.areaPisoM2;
+                lista.add(new ItemTabela(
+                        "Painel",
+                        "Painel PIR " + espessura + "mm - PISO",
+                        (int) Math.ceil(resultados.areaPisoM2),
+                        "m²",
+                        painelMaterial.getValor()
+                ));
+            }
         }
 
         // =========================
@@ -432,7 +484,7 @@ public class ResultadoUsuario {
         if (cantExtMaterial != null) {
             lista.add(new ItemTabela(
                     "Cantoneira",
-                    "Cantoneira externa 40x" + (espessura + 40) + "x3000",
+                    "Cantoneira externa 40x" + espessura + "x3000",
                     resultados.cantoneiraExterna,
                     "barra",
                     cantExtMaterial.getValor()
@@ -475,7 +527,7 @@ public class ResultadoUsuario {
             ));
         }
 
-        if (parafusoMaterial != null && !resultados.requerPiso) {
+        if (parafusoMaterial != null) {
             lista.add(new ItemTabela(
                     "Fixação",
                     "Parafuso Nº8 C/ Bucha e Arruela",
@@ -596,18 +648,6 @@ public class ResultadoUsuario {
                     tuboSuccao != null ? tuboSuccao.getValor() : 0
             ));
 
-            // 🔹 ISOLAMENTO DA LINHA DE LIQUIDO
-            String codIsolamento = "TUBO-" + equipamento.getLinhaLiquido();
-            Material isolamento = mapaMateriais.get(codIsolamento);
-
-            lista.add(new ItemTabela(
-                    "Refrigeração",
-                    "Isolamento Elastomérico " + equipamento.getLinhaLiquido(),
-                    (int) Math.ceil(distUEUC),
-                    "m",
-                    isolamento != null ? isolamento.getValor() : 0
-            ));
-
             // 🔹 SIFÃO (sempre 1 unidade)
             String codSifao = "SIF-" + equipamento.getLinhaLiquido();
 
@@ -660,36 +700,6 @@ public class ResultadoUsuario {
                     qtdVEX,
                     "un",
                     valvulaExpansao != null ? valvulaExpansao.getValor() : 0
-            ));
-
-            // 🔹 PORCA 1/4
-            Material porca14 = mapaMateriais.get("PORC-014");
-            lista.add(new ItemTabela(
-                    "Refrigeração",
-                    "Porca de Flange 1/4",
-                    1,
-                    "un",
-                    porca14 != null ? porca14.getValor() : 0
-            ));
-
-// 🔹 PORCA 3/8
-            Material porca38 = mapaMateriais.get("PORC-038");
-            lista.add(new ItemTabela(
-                    "Refrigeração",
-                    "Porca de Flange 3/8",
-                    3,
-                    "un",
-                    porca38 != null ? porca38.getValor() : 0
-            ));
-
-// 🔹 PORCA 1/2
-            Material porca12 = mapaMateriais.get("PORC-012");
-            lista.add(new ItemTabela(
-                    "Refrigeração",
-                    "Porca de Flange 1/2",
-                    1,
-                    "un",
-                    porca12 != null ? porca12.getValor() : 0
             ));
 
             System.out.println("Gas equipamento: " + equipamento.getGas());
@@ -805,9 +815,7 @@ public class ResultadoUsuario {
                 }
             }
 
-            double area = resultados.areaPisoM2;
-
-            int qtd = (int) Math.ceil(area / 10.0);
+            double area = resultados.getAreaTotal();
 
             Material lum120 = mapaMateriais.get("LUN-120");
             Material lum060 = mapaMateriais.get("LUN-060");
@@ -827,7 +835,12 @@ public class ResultadoUsuario {
 
             } else {
 
-                // luminárias 120cm
+                // 1 luminária 120cm inicial
+                int qtd = 1;
+
+                // a cada 5m² adiciona mais 1
+                qtd += (int) Math.floor(area / 5);
+
                 if (lum120 != null) {
                     lista.add(new ItemTabela(
                             "Elétrica",
@@ -971,13 +984,7 @@ public class ResultadoUsuario {
             controller.setTensao(tensao);
 
             controller.setCliente(lblCliente.getText());
-            String[] partes = lblDimensoes.getText().split(" x ");
-
-            double c = Double.parseDouble(partes[0].replace(",", "."));
-            double l = Double.parseDouble(partes[1].replace(",", "."));
-            double a = Double.parseDouble(partes[2].replace(",", "."));
-
-            controller.setDimensoes(c, l, a);
+            controller.setDimensoes(lblDimensoes.getText());
             controller.setTipoCamara(lblTipo.getText());
 
             Stage stage = (Stage) btnVoltar.getScene().getWindow();
@@ -986,115 +993,6 @@ public class ResultadoUsuario {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @FXML
-    private void salvarProjeto() {
-
-        try {
-
-            File pdfTemp = File.createTempFile("orcamento_", ".pdf");
-
-            gerarPDF(pdfTemp);
-
-            String cliente = lblCliente.getText();
-            String tipo = lblTipo.getText();
-            String dimensoes = lblDimensoes.getText();
-
-            double custo = NumeroUtil.converter(lblCusto.getText());
-            double venda = NumeroUtil.converter(lblVenda.getText());
-
-            ProjetoService service = new ProjetoService();
-
-            service.salvarProjeto(
-                    cliente,
-                    tipo,
-                    dimensoes,
-                    custo,
-                    venda,
-                    pdfTemp
-            );
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText("Projeto salvo com sucesso!");
-            alert.show();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void gerarPDF(File file) throws Exception {
-
-        Document doc = new Document();
-        PdfWriter.getInstance(doc, new FileOutputStream(file));
-        doc.open();
-
-        doc.add(new Paragraph("ORÇAMENTO DE CÂMARA FRIGORÍFICA\n\n"));
-
-        doc.add(new Paragraph("Cliente: " + lblCliente.getText()));
-        doc.add(new Paragraph("Tipo: " + lblTipo.getText()));
-        doc.add(new Paragraph("Dimensões: " + lblDimensoes.getText()));
-        doc.add(new Paragraph("\n"));
-
-        PdfPTable tabela = new PdfPTable(4);
-        tabela.setWidthPercentage(100);
-        tabela.setWidths(new float[]{2f,6f,1f,1f});
-
-        tabela.addCell("Item");
-        tabela.addCell("Descrição");
-        tabela.addCell("Qtd");
-        tabela.addCell("Un");
-
-        // PAINÉIS
-        if (memorial != null && !memorial.isEmpty()) {
-
-            String[] linhas = memorial.split("\n");
-
-            for (String linha : linhas) {
-
-                linha = linha.trim();
-
-                if (linha.isEmpty()) continue;
-
-                if (linha.contains("PAREDE") || linha.contains("TETO") || linha.contains("PISO"))
-                    continue;
-
-                try {
-
-                    String[] partes = linha.split(" ");
-
-                    int qtd = Integer.parseInt(partes[0]);
-
-                    String medida = linha.substring(linha.indexOf(" ") + 1)
-                            .replace("paineis", "")
-                            .replace("painéis", "")
-                            .trim()
-                            .replace(" x ", "x");
-
-                    tabela.addCell("Painel");
-                    tabela.addCell("Painel PIR " + espessura + "mm " + medida);
-                    tabela.addCell(String.valueOf(qtd));
-                    tabela.addCell("un");
-
-                } catch (Exception ignored) {}
-            }
-        }
-
-        // RESTO DOS MATERIAIS
-        for (ItemTabela item : tableMateriais.getItems()) {
-
-            if (item.getItem().equalsIgnoreCase("Painel")) continue;
-
-            tabela.addCell(item.getItem());
-            tabela.addCell(item.getDescricao());
-            tabela.addCell(String.valueOf(item.getQuantidade()));
-            tabela.addCell(item.getUnidade());
-        }
-
-        doc.add(tabela);
-
-        doc.close();
     }
 
     // Alterar método adicionarCabo

@@ -20,16 +20,4 @@ public class NumeroUtil {
         return df.format(valor);
     }
 
-    // NOVO MÉTODO
-    public static double converter(String texto) {
-
-        if (texto == null || texto.isEmpty()) return 0;
-
-        texto = texto.replace("R$", "")
-                .replace(".", "")
-                .replace(",", ".")
-                .trim();
-
-        return Double.parseDouble(texto);
-    }
 }
