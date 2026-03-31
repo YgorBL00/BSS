@@ -319,7 +319,6 @@ public class CaixoteUsuario {
     private void abrirTelaRefrigeracao() {
 
         try {
-
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/app/usuario/refrigeracao.fxml")
             );

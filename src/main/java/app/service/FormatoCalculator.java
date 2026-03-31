@@ -14,6 +14,7 @@ public class FormatoCalculator {
     // =============================
     // CLASSES INTERNAS
     // =============================
+
     public static class Recorte {
         public double largura;
         public double altura;
@@ -23,8 +24,6 @@ public class FormatoCalculator {
             this.altura = altura;
         }
     }
-
-
 
     public static class ResultadoFormato {
 
@@ -278,14 +277,11 @@ public class FormatoCalculator {
         // =========================
         Map<String, Integer> paineisParede = new LinkedHashMap<>();
 
-        int inteiros = r.paineisParede - r.recortesParede.size();
+        // painéis inteiros
+        String chaveInteiro = String.format("1,15x%.2f", r.alturaParedeReal);
+        paineisParede.put(chaveInteiro, r.paineisParede - r.recortesParede.size());
 
-        if (inteiros > 0) {
-
-            String chave = String.format("1,15x%.2f", r.alturaParedeReal);
-            paineisParede.put(chave, inteiros);
-        }
-
+        // recortes
         for (Recorte rec : r.recortesParede) {
 
             String chave = String.format("%.2fx%.2f", rec.largura, rec.altura);

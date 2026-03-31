@@ -57,12 +57,18 @@ public class RefrigeracaoUsuario {
     private Equipamento equipamentoSelecionado;
     private String tensao;
     private Evaporadora evapSelecionada;
+    private String memorial;
 
     public void setEspessura(int espessura) {
         this.espessura = espessura;
         if (lblEspessura != null) {
             lblEspessura.setText(espessura + " mm");
         }
+    }
+
+
+    public void setMemorial(String memorial) {
+        this.memorial = memorial;
     }
 
     public void setTensao(String tensao) {
@@ -115,6 +121,10 @@ public class RefrigeracaoUsuario {
 
         // 3️⃣ Inicializa campo de tempo de processo
         txtTempoProcesso.setText("24");
+
+        txtDistQuadroUC.setText("5");
+        txtDistQuadroEU.setText("5");
+        txtDistUEUC.setText("5");
 
         // 4️⃣ Inicializa a lista de produtos
         ProdutoService service = new ProdutoService();
@@ -221,6 +231,17 @@ public class RefrigeracaoUsuario {
 
     @FXML
     public void abrirResultado() {
+
+        if (equipamentoSelecionado == null || evapSelecionada == null) {
+
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Cálculo necessário");
+            alert.setHeaderText(null);
+            alert.setContentText("Você precisa calcular a refrigeração antes de gerar o orçamento.");
+            alert.showAndWait();
+
+            return;
+        }
         try {
 
             FXMLLoader loader = new FXMLLoader(
@@ -614,7 +635,36 @@ public class RefrigeracaoUsuario {
         return maisProximo;
     }
 
+    public void setDimensoes(double c, double l, double a) {
+        lblDimensoes.setText(
+                String.format("%.2f x %.2f x %.2f", c, l, a)
+        );
+    }
 
+    private boolean camposPreenchidos() {
+
+        if (txtTempInterna.getText().isEmpty() ||
+                txtTempEntrada.getText().isEmpty() ||
+                txtCargaProduto.getText().isEmpty() ||
+                txtTempoProcesso.getText().isEmpty() ||
+                txtDistQuadroUC.getText().isEmpty() ||
+                txtDistQuadroEU.getText().isEmpty() ||
+                txtDistUEUC.getText().isEmpty() ||
+                cbProduto.getValue() == null ||
+                cbVariedade.getValue() == null ||
+                cbTempAmbiente.getValue() == null) {
+
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Dados incompletos");
+            alert.setHeaderText(null);
+            alert.setContentText("Preencha todos os campos antes de continuar.");
+            alert.showAndWait();
+
+            return false;
+        }
+
+        return true;
+    }
 
     private String definirGas(String tipoCamara) {
 

@@ -100,6 +100,7 @@ public class PainelAdmin implements Initializable {
     }
 
     private void abrirTela(String fxml) {
+
         try {
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
@@ -117,7 +118,6 @@ public class PainelAdmin implements Initializable {
     private void sair() {
 
         try {
-
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/app/login.fxml"));
             Parent root = loader.load();
 
@@ -127,6 +127,5 @@ public class PainelAdmin implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

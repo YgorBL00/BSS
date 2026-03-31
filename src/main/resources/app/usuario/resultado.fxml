@@ -115,6 +115,10 @@
                 <Button text="Exportar PDF"
                         onAction="#exportarPDF"/>
 
+                <Button fx:id="btnVerProjetos"
+                        text="Projetos Salvos"
+                        onAction="#abrirProjetos"/>
+
             </HBox>
 
         </VBox>
