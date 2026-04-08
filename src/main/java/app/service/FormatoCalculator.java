@@ -144,14 +144,20 @@ public class FormatoCalculator {
 
         double C = C_ext;
         double L = L_ext - 2 * E;
+
+        double C_interno = C_ext - 2 * E;
+        double L_interno = L_ext - 2 * E;
+
         double alturaParede = A_ext - E - (temPiso ? E : 0);
+
         r.alturaParedeReal = alturaParede;
-        r.alturaTetoReal = L_ext;
-        r.alturaPisoReal = L;
+        r.alturaTetoReal = L_interno;
+        r.alturaPisoReal = L_interno;
 
         // =============================
         // PAREDES
         // =============================
+
         double[] lados = {C, C, L, L};
         for (double lado : lados) {
             int inteiros = (int) (lado / LARGURA_PAINEL);
@@ -165,14 +171,18 @@ public class FormatoCalculator {
             }
         }
 
-
         // =============================
         // TETO
         // =============================
-        int inteirosTeto = (int) (C_ext / LARGURA_PAINEL);
-        double recorteTeto = C_ext - (inteirosTeto * LARGURA_PAINEL);
-        r.paineisTeto = inteirosTeto;
-        if (recorteTeto > 0) {
+
+        double ladoTeto = C_ext;
+
+        int inteirosTeto = (int) (ladoTeto / LARGURA_PAINEL);
+        double recorteTeto = ladoTeto - (inteirosTeto * LARGURA_PAINEL);
+
+        r.paineisTeto += inteirosTeto;
+
+        if (recorteTeto > 0.001) {
             r.paineisTeto++;
             r.recortesTeto.add(new Recorte(recorteTeto, L_ext));
         }
@@ -180,15 +190,17 @@ public class FormatoCalculator {
         // =============================
         // PISO
         // =============================
-        if (temPiso) {
-            r.requerPiso = true;
-            int inteirosPiso = (int) (C / LARGURA_PAINEL);
-            double recortePiso = C - (inteirosPiso * LARGURA_PAINEL);
-            r.paineisPiso = inteirosPiso;
-            if (recortePiso > 0) {
-                r.paineisPiso++;
-                r.recortesPiso.add(new Recorte(recortePiso, L));
-            }
+
+        double ladoPiso = C_ext;
+
+        int inteirosPiso = (int) (ladoPiso / LARGURA_PAINEL);
+        double recortePiso = ladoPiso - (inteirosPiso * LARGURA_PAINEL);
+
+        r.paineisPiso += inteirosPiso;
+
+        if (recortePiso > 0.001) {
+            r.paineisPiso++;
+            r.recortesPiso.add(new Recorte(recortePiso, L_ext));
         }
 
         // =============================

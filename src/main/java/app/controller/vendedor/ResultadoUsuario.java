@@ -84,6 +84,7 @@ public class ResultadoUsuario {
     private double cargaKcal;
     double cargaComSeguranca = cargaKcal * 1.10;
     private Evaporadora evaporadora;
+    private File pdfGerado;
 
 
     public void setDadosRefrigeracao(double carga, int amb, double evap, String gas) {
@@ -133,11 +134,11 @@ public class ResultadoUsuario {
 
             fileChooser.setInitialFileName("orcamento_" + nomeCliente + ".pdf");
 
-            File file = fileChooser.showSaveDialog(btnVoltar.getScene().getWindow());
-            if (file == null) return;
+            pdfGerado = fileChooser.showSaveDialog(btnVoltar.getScene().getWindow());
+            if (pdfGerado == null) return;
 
             Document doc = new Document();
-            PdfWriter.getInstance(doc, new FileOutputStream(file));
+            PdfWriter.getInstance(doc, new FileOutputStream(pdfGerado));
             doc.open();
 
             // =========================
@@ -148,13 +149,19 @@ public class ResultadoUsuario {
             // =========================
             // CLIENTE
             // =========================
+            String tensaoTexto = tensao != null ? tensao : "-";
+
             doc.add(new Paragraph("Cliente: " + lblCliente.getText()));
             doc.add(new Paragraph("Tipo: " + lblTipo.getText()));
-            doc.add(new Paragraph("Dimensões: " + lblDimensoes.getText()));
+            doc.add(new Paragraph(
+                    "Dimensões: " + lblDimensoes.getText() +
+                            "   |   Tensão: " + tensaoTexto +
+                            "   |   Carenada: Não"
+            ));
             doc.add(new Paragraph("\n"));
 
             // =========================
-            // TABELA ÚNICA
+            // TABELA
             // =========================
             PdfPTable tabela = new PdfPTable(4);
             tabela.setWidthPercentage(100);
@@ -165,48 +172,103 @@ public class ResultadoUsuario {
             tabela.addCell("Qtd");
             tabela.addCell("Unidade");
 
+            int contadorItem = 1;
+
             // =========================
-            // PAINÉIS PRIMEIRO
+            // AGRUPAR PAINÉIS
             // =========================
 
             Map<String, Integer> agrupado = new LinkedHashMap<>();
 
-            List<FormatoCalculator.Recorte> todosRecortes = new ArrayList<>();
-            todosRecortes.addAll(resultados.recortesParede);
-            todosRecortes.addAll(resultados.recortesTeto);
-            todosRecortes.addAll(resultados.recortesPiso);
+            // PAREDES
+            int inteirosParede = resultados.paineisParede - resultados.recortesParede.size();
 
-            for (FormatoCalculator.Recorte r : todosRecortes) {
+            if (inteirosParede > 0) {
+                agrupado.merge(
+                        String.format("1,15 x %.2f - Paredes", resultados.alturaParedeReal),
+                        inteirosParede,
+                        Integer::sum
+                );
+            }
 
-                String formato =
-                        String.format("%.2f", r.largura) +
-                                " x " +
-                                String.format("%.2f", r.altura);
+            for (FormatoCalculator.Recorte r : resultados.recortesParede) {
+
+                String formato = String.format("%.2f x %.2f - Paredes", r.largura, r.altura);
+                agrupado.merge(formato, 1, Integer::sum);
+            }
+
+            // =========================
+            // TETO
+            // =========================
+            double largura = getComprimentoCamara(); // largura da câmara
+
+            int inteirosTeto = resultados.paineisTeto - resultados.recortesTeto.size();
+
+            if (inteirosTeto > 0) {
+                agrupado.merge(
+                        String.format("1,15 x %.2f - Teto", largura),
+                        inteirosTeto,
+                        Integer::sum
+                );
+            }
+
+            for (FormatoCalculator.Recorte r : resultados.recortesTeto) {
+
+                String formato = String.format("%.2f x %.2f - Teto", r.largura, largura);
 
                 agrupado.merge(formato, 1, Integer::sum);
             }
 
+            // =========================
+            // PISO
+            // =========================
+
+
+            int inteirosPiso = resultados.paineisPiso - resultados.recortesPiso.size();
+
+            if (inteirosPiso > 0) {
+                agrupado.merge(
+                        String.format("1,15 x %.2f - Piso", largura),
+                        inteirosPiso,
+                        Integer::sum
+                );
+            }
+
+            for (FormatoCalculator.Recorte r : resultados.recortesPiso) {
+
+                String formato = String.format("%.2f x %.2f - Piso", r.largura, largura);
+
+                agrupado.merge(formato, 1, Integer::sum);
+            }
+
+            // =========================
+            // ADICIONAR PAINÉIS NA TABELA
+            // =========================
+
             for (Map.Entry<String, Integer> e : agrupado.entrySet()) {
 
-                tabela.addCell("Painel");
-                tabela.addCell("Painel PIR " + espessura + "mm " + e.getKey());
-                tabela.addCell(String.valueOf(e.getValue()));
+                String descricao = "Painel PIR 100mm " + e.getKey();
+                int qtd = e.getValue();
+
+                tabela.addCell(String.valueOf(contadorItem++));
+                tabela.addCell(descricao);
+                tabela.addCell(String.valueOf(qtd));
                 tabela.addCell("und");
             }
 
             // =========================
             // RESTO DOS MATERIAIS
             // =========================
+
             for (ItemTabela item : tableMateriais.getItems()) {
 
                 String descricao = item.getDescricao();
 
-                // NÃO exportar painel em m²
                 if (descricao.contains("Painel PIR")) {
                     continue;
                 }
 
-                tabela.addCell(item.getItem());
+                tabela.addCell(String.valueOf(contadorItem++));
                 tabela.addCell(descricao);
                 tabela.addCell(String.valueOf(item.getQuantidade()));
                 tabela.addCell(item.getUnidade());
@@ -216,12 +278,12 @@ public class ResultadoUsuario {
 
             doc.close();
 
-            Desktop.getDesktop().open(file);
+            Desktop.getDesktop().open(pdfGerado);
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("PDF gerado");
             alert.setHeaderText(null);
-            alert.setContentText("PDF salvo em:\n" + file.getAbsolutePath());
+            alert.setContentText("PDF salvo em:\n" + pdfGerado.getAbsolutePath());
             alert.showAndWait();
 
         } catch (Exception e) {
@@ -392,14 +454,15 @@ public class ResultadoUsuario {
         String tipo = p.getTipo().contains("Giratória") ? "G" : "C";
 
         String tamanho = p.getTamanho()
-                .replace(",", ".")
-                .replace(" ", "")
+                .replace(",", "")
                 .replace(".", "")
-                .replace("x", "");
+                .replace(" ", "")
+                .replace("x", "")
+                .replace("X", "");
 
         String aplicacao = p.getTipo().contains("Resfriados") ? "R" : "F";
 
-        String batente = p.getBatente();
+        String batente = p.getBatente().trim();
 
         String abertura;
 
@@ -673,10 +736,6 @@ public class ResultadoUsuario {
             // =========================
             // ELASTOMÉRICO
             // =========================
-
-// =========================
-// ELASTOMÉRICO
-// =========================
 
             String bitolaLiquido = equipamento.getLinhaLiquido();
 
@@ -954,14 +1013,21 @@ public class ResultadoUsuario {
                 }
             }
 
-            double area = resultados.getAreaTotal();
+            // =========================
+            // LUMINÁRIA (CORRIGIDO)
+            // =========================
+
+            // 🔥 usa área do PISO (mais correto)
+            double area = resultados.areaPisoM2 > 0
+                    ? resultados.areaPisoM2
+                    : resultados.getAreaTotal();
 
             Material lum120 = mapaMateriais.get("LUN-120");
             Material lum060 = mapaMateriais.get("LUN-060");
 
-            if (area <= 2) {
+            if (area <= 3) {
 
-                // 1 luminária 60cm
+                // Pequeno → 60cm
                 if (lum060 != null) {
                     lista.add(new ItemTabela(
                             "Elétrica",
@@ -974,11 +1040,8 @@ public class ResultadoUsuario {
 
             } else {
 
-                // 1 luminária 120cm inicial
-                int qtd = 1;
-
-                // a cada 5m² adiciona mais 1
-                qtd += (int) Math.floor(area / 5);
+                // Médio / grande → 120cm
+                int qtd = (int) Math.ceil(area / 6.0);
 
                 if (lum120 != null) {
                     lista.add(new ItemTabela(
@@ -1137,6 +1200,14 @@ public class ResultadoUsuario {
 
         try {
 
+            if (pdfGerado == null) {
+
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setContentText("Primeiro gere o PDF do orçamento.");
+                alert.show();
+                return;
+            }
+
             String cliente = lblCliente.getText();
             String tipo = lblTipo.getText();
             String dimensoes = lblDimensoes.getText();
@@ -1156,16 +1227,6 @@ public class ResultadoUsuario {
             double custo = Double.parseDouble(custoTexto);
             double venda = Double.parseDouble(vendaTexto);
 
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Selecionar PDF do orçamento");
-            fileChooser.getExtensionFilters().add(
-                    new FileChooser.ExtensionFilter("PDF", "*.pdf")
-            );
-
-            File pdf = fileChooser.showOpenDialog(btnVoltar.getScene().getWindow());
-
-            if (pdf == null) return;
-
             ProjetoService service = new ProjetoService();
 
             service.salvarProjeto(
@@ -1174,7 +1235,7 @@ public class ResultadoUsuario {
                     dimensoes,
                     custo,
                     venda,
-                    pdf
+                    pdfGerado
             );
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -1182,25 +1243,6 @@ public class ResultadoUsuario {
             alert.setHeaderText(null);
             alert.setContentText("Projeto salvo com sucesso!");
             alert.showAndWait();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void abrirProjetos() {
-
-        try {
-
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/app/usuario/projetos-salvos.fxml")
-            );
-
-            Parent root = loader.load();
-
-            Stage stage = (Stage) btnVerProjetos.getScene().getWindow();
-            stage.setScene(new Scene(root, 1150, 750));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -1221,4 +1263,21 @@ public class ResultadoUsuario {
         // Adiciona ao mapa, somando se já existir
         cabos.merge(chave, metros, Integer::sum);
     }
+
+    private double getComprimentoCamara() {
+
+        try {
+
+            // exemplo: "2,00 x 2,00 x 2,20"
+            String[] partes = lblDimensoes.getText()
+                    .replace(",", ".")
+                    .split("x");
+
+            return Double.parseDouble(partes[1].trim());
+
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 }
+
