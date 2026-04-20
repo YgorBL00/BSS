@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="app.controller.vendedor.OrcamentoController"
+            prefHeight="720" prefWidth="1050"
+            style="-fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #b3e0ff, white);">
+
+    <children>
+
+        <VBox spacing="20"
+              alignment="TOP_CENTER"
+              AnchorPane.topAnchor="0"
+              AnchorPane.leftAnchor="0"
+              AnchorPane.rightAnchor="0"
+              AnchorPane.bottomAnchor="0">
+
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+
+            <!-- TÍTULO -->
+            <Label text="Orçamento Final"
+                   style="-fx-font-size:26; -fx-text-fill:#23336f; -fx-font-weight:bold;">
+                <padding>
+                    <Insets bottom="30"/>
+                </padding>
+            </Label>
+
+            <!-- CARD PRINCIPAL -->
+            <VBox spacing="15"
+                  alignment="CENTER"
+                  style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:5; -fx-background-radius:5;">
+
+                <padding>
+                    <Insets top="25" right="25" bottom="25" left="25"/>
+                </padding>
+
+                <!-- Cliente -->
+                <Label fx:id="lblCliente"
+                       style="-fx-font-size:14; -fx-font-weight:bold;" />
+
+                <!-- Custo -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Custo:" style="-fx-font-weight:bold;"/>
+                    <Label fx:id="lblCusto"/>
+                </HBox>
+
+                <!-- Margem -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Margem (%):" style="-fx-font-weight:bold;"/>
+                    <TextField fx:id="txtMargem"
+                               promptText="Ex: 30"
+                               prefWidth="120"/>
+                </HBox>
+
+                <!-- Venda -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Valor de Venda:" style="-fx-font-weight:bold;"/>
+                    <Label fx:id="lblVenda"
+                           style="-fx-font-size:16; -fx-font-weight:bold; -fx-text-fill:#2e7d32;"/>
+                </HBox>
+
+                <!-- DIAS -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Dias:"/>
+                    <ComboBox fx:id="cbDias"/>
+                </HBox>
+
+                <!-- PESSOAS -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Pessoas:"/>
+                    <ComboBox fx:id="cbPessoas"/>
+                </HBox>
+
+                <!-- KM -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Distância (km):"/>
+                    <TextField fx:id="txtKm"/>
+                </HBox>
+
+                <!-- IMPOSTO -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Imposto (%):"/>
+                    <TextField fx:id="txtImposto"/>
+                </HBox>
+
+                <!-- CHECKS -->
+                <CheckBox fx:id="chkHospedagem" text="Hospedagem"/>
+                <CheckBox fx:id="chkAlimentacao" text="Alimentação"/>
+                <CheckBox fx:id="chkAndaime" text="Andaime"/>
+                <CheckBox fx:id="chkPTA" text="PTA"/>
+
+                <Label fx:id="lblResumo"
+                       style="-fx-font-size:13; -fx-text-fill:#444;"/>
+
+                <!-- BOTÕES -->
+                <HBox spacing="20" alignment="CENTER">
+                    <Button text="Calcular"
+                            onAction="#calcularVenda"/>
+
+                    <Button text="Confirmar"
+                            onAction="#confirmarVenda"/>
+                </HBox>
+
+
+            </VBox>
+
+        </VBox>
+
+    </children>
+
+</AnchorPane>

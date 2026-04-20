@@ -45,6 +45,8 @@ public class CaixoteUsuario {
 
     @FXML private RadioButton rb220Mono;
     @FXML private RadioButton rb220Tri;
+    @FXML private RadioButton rb380Tri;
+
 
     @FXML private CheckBox chkFrente;
     @FXML private CheckBox chkAtras;
@@ -127,6 +129,10 @@ public class CaixoteUsuario {
         if ("220V_TRI".equals(tensao)) {
             rb220Tri.setSelected(true);
         }
+
+        if ("380V_TRI".equals(tensao)) {
+            rb380Tri.setSelected(true);
+        }
     }
 
     public void setPortas(List<Porta> portas) {
@@ -160,6 +166,7 @@ public class CaixoteUsuario {
         ToggleGroup grupoTensao = new ToggleGroup();
         rb220Mono.setToggleGroup(grupoTensao);
         rb220Tri.setToggleGroup(grupoTensao);
+        rb380Tri.setToggleGroup(grupoTensao); // NOVO
 
         // Mostrar ou esconder cantos
         spCantoSemAcabamento.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -278,6 +285,8 @@ public class CaixoteUsuario {
                 tensao = "220V_MONO";
             } else if (rb220Tri.isSelected()) {
                 tensao = "220V_TRI";
+            } else if (rb380Tri.isSelected()) {
+                tensao = "380V_TRI";
             } else {
                 tensao = "INDEFINIDO";
             }

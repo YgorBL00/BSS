@@ -19,7 +19,6 @@ public class ProjetoService {
             String tipoCamara,
             String dimensoes,
             double custo,
-            double venda,
             File pdf
     ) {
 
@@ -38,7 +37,6 @@ public class ProjetoService {
             ps.setString(2, tipoCamara);
             ps.setString(3, dimensoes);
             ps.setDouble(4, custo);
-            ps.setDouble(5, venda);
 
             FileInputStream fis = new FileInputStream(pdf);
             ps.setBinaryStream(6, fis, (int) pdf.length());

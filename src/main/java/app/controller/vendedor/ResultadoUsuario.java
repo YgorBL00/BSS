@@ -42,10 +42,8 @@ public class ResultadoUsuario {
     // =============================
 
     @FXML public Label lblCusto;
-    @FXML public Label lblVenda;
-    @FXML public Button btnExportar;
+    public Button btnGerarOrcamento;
     @FXML private Button btnVoltar;
-    @FXML private Button btnVerProjetos;
 
     @FXML private Label lblCliente;
     @FXML private Label lblTipo;
@@ -165,7 +163,7 @@ public class ResultadoUsuario {
             // =========================
             PdfPTable tabela = new PdfPTable(4);
             tabela.setWidthPercentage(100);
-            tabela.setWidths(new float[]{1.5f, 6f, 1.5f, 1f});
+            tabela.setWidths(new float[]{0.7f, 7f, 1.5f, 1f});
 
             tabela.addCell("Item");
             tabela.addCell("Descrição");
@@ -223,22 +221,24 @@ public class ResultadoUsuario {
             // PISO
             // =========================
 
+            if (resultados.requerPiso) {
 
-            int inteirosPiso = resultados.paineisPiso - resultados.recortesPiso.size();
+                int inteirosPiso = resultados.paineisPiso - resultados.recortesPiso.size();
 
-            if (inteirosPiso > 0) {
-                agrupado.merge(
-                        String.format("1,15 x %.2f - Piso", largura),
-                        inteirosPiso,
-                        Integer::sum
-                );
-            }
+                if (inteirosPiso > 0) {
+                    agrupado.merge(
+                            String.format("1,15 x %.2f - Piso", largura),
+                            inteirosPiso,
+                            Integer::sum
+                    );
+                }
 
-            for (FormatoCalculator.Recorte r : resultados.recortesPiso) {
+                for (FormatoCalculator.Recorte r : resultados.recortesPiso) {
 
-                String formato = String.format("%.2f x %.2f - Piso", r.largura, largura);
+                    String formato = String.format("%.2f x %.2f - Piso", r.largura, largura);
 
-                agrupado.merge(formato, 1, Integer::sum);
+                    agrupado.merge(formato, 1, Integer::sum);
+                }
             }
 
             // =========================
@@ -481,7 +481,9 @@ public class ResultadoUsuario {
 
     private void preencherTabela() {
 
-        if (resultados == null) return;
+        if (resultados == null || equipamento == null || tensao == null) {
+            return;
+        }
 
         ObservableList<ItemTabela> lista = FXCollections.observableArrayList();
 
@@ -494,6 +496,7 @@ public class ResultadoUsuario {
         // =========================
         // VALORES BASE PELO BANCO
         // =========================
+
         Material painelMaterial = materiais.stream()
                 .filter(m -> m.getCodigo().startsWith("PAINEL_" + espessura))
                 .findFirst()
@@ -551,8 +554,32 @@ public class ResultadoUsuario {
         }
 
         // =========================
+        // FIXAÇÃO EXTRA (SEM BD)
+        // =========================
+
+        // Barra roscada 3/8 3m
+        lista.add(new ItemTabela(
+                "Fixação",
+                "Barra Roscada 3/8\" (3m)",
+                1,
+                "un",
+                15.38 // sem valor (ou coloca manual depois se quiser)
+        ));
+
+        // Porcas 3/8
+        lista.add(new ItemTabela(
+                "Fixação",
+
+                "Porca 3/8\"",
+                14,
+                "un",
+                0.21 // sem valor
+        ));
+
+        // =========================
         // PERFIL
         // =========================
+
         if (perfilMaterial != null) {
             lista.add(new ItemTabela(
                     "Perfil",
@@ -566,6 +593,7 @@ public class ResultadoUsuario {
         // =========================
         // CANTONEIRAS
         // =========================
+
         if (cantExtMaterial != null) {
             lista.add(new ItemTabela(
                     "Cantoneira",
@@ -597,6 +625,27 @@ public class ResultadoUsuario {
                     "un",
                     puMaterial.getValor()
             ));
+        }
+
+        // =========================
+        // ESPUMA EXPANSIVA (CONGELADOS)
+        // =========================
+        if (tipoCamara != null && tipoCamara.toLowerCase().contains("congel")) {
+
+            Material espumaExpansiva = mapaMateriais.get("PU-ESP-500");
+
+            if (espumaExpansiva != null && resultados.sachePU > 0) {
+
+                int quantidadeEspuma = Math.max(resultados.sachePU - 1, 1);
+
+                lista.add(new ItemTabela(
+                        "PU",
+                        espumaExpansiva.getNome(),
+                        quantidadeEspuma,
+                        espumaExpansiva.getUnidade(),
+                        espumaExpansiva.getValor()
+                ));
+            }
         }
 
         // =========================
@@ -782,20 +831,20 @@ public class ResultadoUsuario {
             }
 
             // =========================
-            // RESISTÊNCIA PORTA (CONGELADOS)
+            // RESISTÊNCIA DE DRENO (SOMENTE CONGELADOS)
             // =========================
 
             if (tipoCamara != null && tipoCamara.toLowerCase().contains("congel")) {
 
-                Material resistencia = mapaMateriais.get("RES-SIL-3M");
+                Material resistenciaDreno = mapaMateriais.get("RES-DRENO-3M");
 
-                if (resistencia != null) {
+                if (resistenciaDreno != null) {
                     lista.add(new ItemTabela(
                             "Refrigeração",
-                            resistencia.getNome(),
-                            portas.size(),
-                            "un",
-                            resistencia.getValor()
+                            resistenciaDreno.getNome(),
+                            1, // 1 por evaporadora
+                            resistenciaDreno.getUnidade(),
+                            resistenciaDreno.getValor()
                     ));
                 }
             }
@@ -959,7 +1008,7 @@ public class ResultadoUsuario {
             // cria lógica elétrica baseada no equipamento
             Eletrica eletrica = new Eletrica(
                     equipamento.getModelo(),
-                    true // ou pegar da tensão depois
+                    tensao // ✅ agora usa a tensão real
             );
 
             // Compressor
@@ -1155,9 +1204,6 @@ public class ResultadoUsuario {
         double custoTotal = lista.stream().mapToDouble(ItemTabela::getTotal).sum();
         lblCusto.setText("R$ " + df.format(custoTotal));
 
-        double venda = custoTotal * 1.12 * 1.30;
-        lblVenda.setText("R$ " + df.format(venda));
-
     }
 
     // =============================
@@ -1218,23 +1264,16 @@ public class ResultadoUsuario {
                     .replace(",", ".")
                     .trim();
 
-            String vendaTexto = lblVenda.getText()
-                    .replace("R$", "")
-                    .replace(".", "")
-                    .replace(",", ".")
-                    .trim();
-
             double custo = Double.parseDouble(custoTexto);
-            double venda = Double.parseDouble(vendaTexto);
 
             ProjetoService service = new ProjetoService();
 
+            // 🔥 AGORA SEM VENDA
             service.salvarProjeto(
                     cliente,
                     tipo,
                     dimensoes,
                     custo,
-                    venda,
                     pdfGerado
             );
 
@@ -1277,6 +1316,33 @@ public class ResultadoUsuario {
 
         } catch (Exception e) {
             return 0;
+        }
+    }
+
+    @FXML
+    private void abrirOrcamento() {
+        try {
+
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/app/usuario/OrcamentoController.fxml")
+            );
+
+            Parent root = loader.load();
+
+            OrcamentoController controller = loader.getController();
+
+            controller.setDados(
+                    lblCliente.getText(),
+                    lblCusto.getText(),
+                    this // 🔥 referência pra voltar
+            );
+
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root,750,450));
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

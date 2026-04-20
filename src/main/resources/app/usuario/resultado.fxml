@@ -48,8 +48,6 @@
                 <Label text="Custo de Material Total:" style="-fx-font-weight: bold;"/>
                 <Label fx:id="lblCusto"/>
 
-                <Label text="Valor de venda:" style="-fx-font-weight: bold;"/>
-                <Label fx:id="lblVenda"/>
 
             </HBox>
 
@@ -110,7 +108,8 @@
                         onAction="#salvarProjeto"/>
 
                 <Button text="Gerar Orçamento"
-                        fx:id="btnGerarOrcamento"/>
+                        fx:id="btnGerarOrcamento"
+                        onAction="#abrirOrcamento"/>
 
                 <Button text="Exportar PDF"
                         onAction="#exportarPDF"/>

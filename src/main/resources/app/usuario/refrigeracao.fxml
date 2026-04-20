@@ -153,8 +153,8 @@
                             <Label text="Distância UE → UC (m)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
                             <TextField fx:id="txtDistUEUC" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
-                            <Label text="Altura da Infra (m)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                            <TextField fx:id="txtAlturaInfra" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                            <Label text="Carga térmica (kcal/h)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                            <TextField fx:id="txtKcalInformado" promptText="Opcional" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
                         </GridPane>
 

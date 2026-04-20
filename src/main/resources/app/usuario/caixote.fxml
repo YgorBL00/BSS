@@ -60,6 +60,7 @@
 
                     <RadioButton fx:id="rb220Mono" text="220V 1F"/>
                     <RadioButton fx:id="rb220Tri" text="220V 3F"/>
+                    <RadioButton fx:id="rb380Tri" text="380V 3F"/>
 
                 </HBox>
 

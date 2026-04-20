@@ -28,7 +28,7 @@ public class RefrigeracaoUsuario {
     @FXML public TextField txtDistQuadroUC;
     @FXML public TextField txtDistQuadroEU;
     @FXML public TextField txtDistUEUC;
-    @FXML public TextField txtAlturaInfra;
+    @FXML public TextField txtKcalInformado;
     @FXML public Label lblCargaTermica;
     @FXML public Label lblEquipamento;
     @FXML private Label lblCliente;
@@ -354,22 +354,33 @@ public class RefrigeracaoUsuario {
     @FXML
     public void calcularRefrigeracao() {
 
-        // 1️⃣ Verificação de campos obrigatórios
-        if (txtTempInterna.getText().isEmpty() ||
-                txtTempEntrada.getText().isEmpty() ||
-                txtCargaProduto.getText().isEmpty() ||
-                txtTempoProcesso.getText().isEmpty() ||
-                cbProduto.getValue() == null ||
-                cbVariedade.getValue() == null ||
-                cbTempAmbiente.getValue() == null ||
-                resultados == null) {
+        boolean usandoKcalManual = txtKcalInformado != null && !txtKcalInformado.getText().isEmpty();
+
+        if (
+            // 🔴 Só valida esses campos se NÃO estiver usando kcal manual
+                (!usandoKcalManual && (
+                        txtTempInterna.getText().isEmpty() ||
+                                txtTempEntrada.getText().isEmpty() ||
+                                txtCargaProduto.getText().isEmpty()
+                )) ||
+
+                        // 🔵 Esses continuam obrigatórios sempre
+                        txtTempoProcesso.getText().isEmpty() ||
+                        cbProduto.getValue() == null ||
+                        cbVariedade.getValue() == null ||
+                        cbTempAmbiente.getValue() == null ||
+                        resultados == null
+        ) {
 
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Dados incompletos");
             alert.setHeaderText(null);
-            alert.setContentText("Por favor, preencha todos os campos antes de calcular.");
+            alert.setContentText(
+                    usandoKcalManual
+                            ? "Preencha os campos obrigatórios para seleção do equipamento."
+                            : "Preencha todos os campos ou informe a carga térmica (kcal)."
+            );
             alert.showAndWait();
-
 
             return;
         }
@@ -403,19 +414,35 @@ public class RefrigeracaoUsuario {
             double volumeCamara = resultados.getVolumeTotal();  // m³
 
             // 5️⃣ Chamada do motor de cálculo
-            double cargaKcal = LogicaRefrigeracao.calcularCargaTermica(
-                    areaPainel,
-                    volumeCamara,
-                    tempInterna,
-                    tempAmbiente,
-                    listaProdutos,
-                    espessura,      // painel
-                    tempoProcesso,
-                    1,              // trocas de ar/hora, fixo por enquanto
-                    1,              // pessoas, fixo
-                    true,           // iluminação
-                    0               // equipamentos extras
-            );
+            double cargaKcal;
+
+            // ===============================
+            // 🔥 PRIORIDADE: KCAL INFORMADO
+            // ===============================
+            if (txtKcalInformado != null && !txtKcalInformado.getText().isEmpty()) {
+
+                cargaKcal = Double.parseDouble(txtKcalInformado.getText());
+
+                System.out.println("⚠ Usando carga informada manualmente: " + cargaKcal + " kcal/h");
+
+            } else {
+
+                cargaKcal = LogicaRefrigeracao.calcularCargaTermica(
+                        areaPainel,
+                        volumeCamara,
+                        tempInterna,
+                        tempAmbiente,
+                        listaProdutos,
+                        espessura,
+                        tempoProcesso,
+                        1,
+                        1,
+                        true,
+                        0
+                );
+
+                System.out.println("✅ Cálculo automático realizado: " + cargaKcal + " kcal/h");
+            }
 
             // 6️⃣ Atualizar labels
             lblCargaTermica.setText(String.format("%.0f kcal/h | %.2f kW | %.2f TR",
@@ -466,11 +493,14 @@ public class RefrigeracaoUsuario {
                 // DEFINIR SE É TRIFÁSICO
                 // =========================
 
-                boolean trifasico = "220V_TRI".equals(tensao);
+                boolean trifasico =
+                        "220V_TRI".equals(tensao) ||
+                                "380V_TRI".equals(tensao);
+
 
                 Eletrica eletrica = new Eletrica(
                         eq.getModelo(),
-                        trifasico
+                        tensao
                 );
 
                 // =========================
