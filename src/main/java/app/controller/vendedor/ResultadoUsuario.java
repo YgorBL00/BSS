@@ -163,7 +163,7 @@ public class ResultadoUsuario {
             // =========================
             PdfPTable tabela = new PdfPTable(4);
             tabela.setWidthPercentage(100);
-            tabela.setWidths(new float[]{0.7f, 7f, 1.5f, 1f});
+            tabela.setWidths(new float[]{0.7f, 7f, 0.7f, 1f});
 
             tabela.addCell("Item");
             tabela.addCell("Descrição");
@@ -758,6 +758,35 @@ public class ResultadoUsuario {
                 }
             }
 
+            // =========================
+            // DRENO PVC (POR EVAPORADORA)
+            // =========================
+
+            Material canoPVC = mapaMateriais.get("PVC-040");
+            Material cotoveloPVC = mapaMateriais.get("COT-090-040");
+
+            int qtdEvap = 1; // hoje você usa 1 evap, se mudar no futuro só ajustar aqui
+
+            if (canoPVC != null) {
+                lista.add(new ItemTabela(
+                        "Refrigeração",
+                        canoPVC.getNome(),
+                        2 * qtdEvap, // 🔥 2 canos por evap
+                        canoPVC.getUnidade(),
+                        canoPVC.getValor()
+                ));
+            }
+
+            if (cotoveloPVC != null) {
+                lista.add(new ItemTabela(
+                        "Refrigeração",
+                        cotoveloPVC.getNome(),
+                        2 * qtdEvap, // 🔥 2 cotovelos por evap
+                        cotoveloPVC.getUnidade(),
+                        cotoveloPVC.getValor()
+                ));
+            }
+
             // 🔹 LINHA DE LÍQUIDO → quadro → UC
             String codLiquido = "TC-" + equipamento.getLinhaLiquido();
             Material tuboLiquido = mapaMateriais.get(codLiquido);
@@ -1108,11 +1137,41 @@ public class ResultadoUsuario {
             Material eletroduto = mapaMateriais.get("ELETRO-PVC01");
             Material condulete = mapaMateriais.get("CONDU-TAMP01");
             Material conector = mapaMateriais.get("CONEC-CON01");
+            Material abracadeira = mapaMateriais.get("ABR-1");
+            Material autobrocante = mapaMateriais.get("AUTO-BROC");
 
             // quantidade de barras (3 metros cada)
             int barras = (int) Math.ceil(distQuadroUC / 3.0);
 
             if (barras < 1) barras = 1;
+
+            // =========================
+            // ABRAÇADEIRAS E PARAFUSOS
+            // =========================
+
+            // 2 por barra (padrão obra)
+            int qtdAbracadeiras = barras * 2;
+            int qtdParafusos = qtdAbracadeiras;
+
+            if (abracadeira != null) {
+                lista.add(new ItemTabela(
+                        "Elétrica",
+                        abracadeira.getNome(),
+                        qtdAbracadeiras,
+                        abracadeira.getUnidade(),
+                        abracadeira.getValor()
+                ));
+            }
+
+            if (autobrocante != null) {
+                lista.add(new ItemTabela(
+                        "Elétrica",
+                        autobrocante.getNome(),
+                        qtdParafusos,
+                        autobrocante.getUnidade(),
+                        autobrocante.getValor()
+                ));
+            }
 
             // ELETRODUTO
             if (eletroduto != null) {
@@ -1333,12 +1392,11 @@ public class ResultadoUsuario {
 
             controller.setDados(
                     lblCliente.getText(),
-                    lblCusto.getText(),
-                    this // 🔥 referência pra voltar
+                    lblCusto.getText()
             );
 
             Stage stage = new Stage();
-            stage.setScene(new Scene(root,750,450));
+            stage.setScene(new Scene(root,750,750));
             stage.show();
 
         } catch (Exception e) {

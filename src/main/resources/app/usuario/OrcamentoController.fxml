@@ -12,8 +12,7 @@
 
     <children>
 
-        <VBox spacing="20"
-              alignment="TOP_CENTER"
+        <VBox spacing="20" alignment="TOP_LEFT"
               AnchorPane.topAnchor="0"
               AnchorPane.leftAnchor="0"
               AnchorPane.rightAnchor="0"
@@ -25,88 +24,123 @@
 
             <!-- TÍTULO -->
             <Label text="Orçamento Final"
-                   style="-fx-font-size:26; -fx-text-fill:#23336f; -fx-font-weight:bold;">
-                <padding>
-                    <Insets bottom="30"/>
-                </padding>
-            </Label>
+                   style="-fx-font-size:26; -fx-text-fill:#23336f; -fx-font-weight:bold;" />
 
-            <!-- CARD PRINCIPAL -->
-            <VBox spacing="15"
-                  alignment="CENTER"
-                  style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:5; -fx-background-radius:5;">
+            <!-- CARD -->
+            <VBox spacing="20"
+                  style="-fx-background-color:white; -fx-border-color:#cccccc; -fx-border-radius:8; -fx-background-radius:8;">
 
                 <padding>
-                    <Insets top="25" right="25" bottom="25" left="25"/>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
                 </padding>
 
-                <!-- Cliente -->
-                <Label fx:id="lblCliente"
-                       style="-fx-font-size:14; -fx-font-weight:bold;" />
+                <!-- DUAS COLUNAS -->
+                <HBox spacing="40">
 
-                <!-- Custo -->
-                <HBox spacing="10" alignment="CENTER">
-                    <Label text="Custo:" style="-fx-font-weight:bold;"/>
-                    <Label fx:id="lblCusto"/>
+                    <!-- ESQUERDA -->
+                    <VBox spacing="12" prefWidth="450">
+
+                        <Label fx:id="lblCliente"
+                               style="-fx-font-size:14; -fx-font-weight:bold;" />
+
+                        <!-- CUSTO -->
+                        <HBox spacing="5">
+                            <Label text="Custo:"/>
+                            <Label fx:id="lblCusto"
+                                   style="-fx-font-size:18; -fx-font-weight:bold;"/>
+                        </HBox>
+
+                        <!-- MARGEM -->
+                        <HBox spacing="10">
+                            <Label text="Margem (%):"/>
+                            <TextField fx:id="txtMargem" text="30" prefWidth="100"/>
+                        </HBox>
+
+                        <!-- IMPOSTO -->
+                        <HBox spacing="10">
+                            <Label text="Imposto (%):"/>
+                            <TextField fx:id="txtImposto" text="23,93" prefWidth="100"/>
+                        </HBox>
+
+                        <!-- DIAS -->
+                        <HBox spacing="10">
+                            <Label text="Dias:"/>
+                            <ComboBox fx:id="cbDias" prefWidth="120"/>
+                        </HBox>
+
+                        <!-- PESSOAS -->
+                        <HBox spacing="10">
+                            <Label text="Pessoas:"/>
+                            <ComboBox fx:id="cbPessoas" prefWidth="120"/>
+                        </HBox>
+
+                        <Label text="Funcionário: R$ 208/dia"
+                               style="-fx-font-size:12; -fx-text-fill:#555;"/>
+
+                    </VBox>
+
+                    <!-- DIREITA -->
+                    <VBox spacing="12" prefWidth="450">
+
+                        <!-- KM -->
+                        <HBox spacing="10">
+                            <Label text="KM:"/>
+                            <TextField fx:id="txtKm" prefWidth="120"/>
+                        </HBox>
+
+                        <!-- PEDÁGIO -->
+                        <HBox spacing="10">
+                            <Label text="Pedágio:"/>
+                            <TextField fx:id="txtPedagio" prefWidth="120"/>
+                        </HBox>
+
+                        <!-- HOSPEDAGEM -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <CheckBox fx:id="chkHospedagem" text="Hospedagem"/>
+                            <TextField fx:id="txtDiasHospedagem"
+                                       promptText="dias"
+                                       prefWidth="80"
+                                       disable="true"/>
+                        </HBox>
+
+                        <Label text="R$ 250 por dia"
+                               style="-fx-font-size:12; -fx-text-fill:#555;"
+                               translateX="25"/>
+
+                        <!-- PTA -->
+                        <CheckBox fx:id="chkPTA" text="PTA (R$ 5000/mês)"/>
+
+                    </VBox>
+
                 </HBox>
 
-                <!-- Margem -->
-                <HBox spacing="10" alignment="CENTER">
-                    <Label text="Margem (%):" style="-fx-font-weight:bold;"/>
-                    <TextField fx:id="txtMargem"
-                               promptText="Ex: 30"
-                               prefWidth="120"/>
-                </HBox>
+                <!-- RESULTADO -->
+                <VBox spacing="10">
 
-                <!-- Venda -->
-                <HBox spacing="10" alignment="CENTER">
-                    <Label text="Valor de Venda:" style="-fx-font-weight:bold;"/>
-                    <Label fx:id="lblVenda"
-                           style="-fx-font-size:16; -fx-font-weight:bold; -fx-text-fill:#2e7d32;"/>
-                </HBox>
+                    <!-- VENDA -->
+                    <HBox spacing="5">
+                        <Label text="Venda:" style="-fx-font-weight:bold;"/>
+                        <Label fx:id="lblVenda"
+                               style="-fx-font-size:22; -fx-font-weight:bold; -fx-text-fill:#2e7d32;"/>
+                    </HBox>
 
-                <!-- DIAS -->
-                <HBox spacing="10" alignment="CENTER">
-                    <Label text="Dias:"/>
-                    <ComboBox fx:id="cbDias"/>
-                </HBox>
+                    <!-- RESUMO -->
+                    <Label fx:id="lblResumo"
+                           style="-fx-font-size:13; -fx-text-fill:#444;"/>
 
-                <!-- PESSOAS -->
-                <HBox spacing="10" alignment="CENTER">
-                    <Label text="Pessoas:"/>
-                    <ComboBox fx:id="cbPessoas"/>
-                </HBox>
-
-                <!-- KM -->
-                <HBox spacing="10" alignment="CENTER">
-                    <Label text="Distância (km):"/>
-                    <TextField fx:id="txtKm"/>
-                </HBox>
-
-                <!-- IMPOSTO -->
-                <HBox spacing="10" alignment="CENTER">
-                    <Label text="Imposto (%):"/>
-                    <TextField fx:id="txtImposto"/>
-                </HBox>
-
-                <!-- CHECKS -->
-                <CheckBox fx:id="chkHospedagem" text="Hospedagem"/>
-                <CheckBox fx:id="chkAlimentacao" text="Alimentação"/>
-                <CheckBox fx:id="chkAndaime" text="Andaime"/>
-                <CheckBox fx:id="chkPTA" text="PTA"/>
-
-                <Label fx:id="lblResumo"
-                       style="-fx-font-size:13; -fx-text-fill:#444;"/>
+                </VBox>
 
                 <!-- BOTÕES -->
-                <HBox spacing="20" alignment="CENTER">
+                <HBox spacing="15">
                     <Button text="Calcular"
+                            prefWidth="140"
+                            style="-fx-background-color:#4CAF50; -fx-text-fill:white;"
                             onAction="#calcularVenda"/>
 
-                    <Button text="Confirmar"
-                            onAction="#confirmarVenda"/>
+                    <Button text="Gerar Relatório"
+                            prefWidth="160"
+                            style="-fx-background-color:#2196F3; -fx-text-fill:white;"/>
                 </HBox>
-
 
             </VBox>
 

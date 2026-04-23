@@ -106,22 +106,23 @@ public class FormatoCalculator {
         // =============================
         // CALCULA ÁREAS E APROVEITAMENTO
         // =============================
-        public void calcularAreas() {
+        public void calcularAreas(boolean requerPiso) {
+
             // paredes
             areaParedesM2 = 2*(comprimento*alturaParedeReal) + 2*(largura*alturaParedeReal);
 
             // teto
             areaTetoM2 = comprimento * largura;
 
-            // piso
-            areaPisoM2 = comprimento * largura;
+            // piso (agora correto)
+            areaPisoM2 = requerPiso ? (comprimento * largura) : 0;
 
             // desperdício
-            desperdicioM2 = 0; // se não precisar calcular recortes separados, ou calcular apenas recortes reais
+            desperdicioM2 = 0;
 
             // aproveitamento
             double areaBruta = areaParedesM2 + areaTetoM2 + areaPisoM2;
-            aproveitamento = 100.0; // agora é 100% pois estamos calculando direto por m²
+            aproveitamento = 100.0;
         }
     }
 
@@ -141,6 +142,8 @@ public class FormatoCalculator {
 
         ResultadoFormato r = new ResultadoFormato();
         r.setDimensoes(C_ext, L_ext, A_ext);
+        r.requerPiso = temPiso;
+
 
         double C = C_ext;
         double L = L_ext - 2 * E;
@@ -191,16 +194,19 @@ public class FormatoCalculator {
         // PISO
         // =============================
 
-        double ladoPiso = C_ext;
+        if (temPiso) {
 
-        int inteirosPiso = (int) (ladoPiso / LARGURA_PAINEL);
-        double recortePiso = ladoPiso - (inteirosPiso * LARGURA_PAINEL);
+            double ladoPiso = C_ext;
 
-        r.paineisPiso += inteirosPiso;
+            int inteirosPiso = (int) (ladoPiso / LARGURA_PAINEL);
+            double recortePiso = ladoPiso - (inteirosPiso * LARGURA_PAINEL);
 
-        if (recortePiso > 0.001) {
-            r.paineisPiso++;
-            r.recortesPiso.add(new Recorte(recortePiso, L_ext));
+            r.paineisPiso += inteirosPiso;
+
+            if (recortePiso > 0.001) {
+                r.paineisPiso++;
+                r.recortesPiso.add(new Recorte(recortePiso, L_ext));
+            }
         }
 
         // =============================
@@ -245,17 +251,28 @@ public class FormatoCalculator {
         // =============================
         // PERFIL U
         // =============================
-        if (!temPiso) {
-            double totalPerfil = 2 * C_ext + 2 * L_ext + (A_ext + L_ext);
-            r.perfilU = (int) Math.ceil(totalPerfil / 3.0);
+        double totalPerfil = 0;
+
+        // Perfil base da câmara
+        if (temPiso) {
+            // com piso → normalmente não usa base, só partes superiores/laterais
+            totalPerfil = (A_ext + L_ext);
+        } else {
+            // sem piso → precisa de base completa
+            totalPerfil = 2 * C_ext + 2 * L_ext + (A_ext + L_ext);
         }
 
+        // converte para barras de 3m
+        r.perfilU = (int) Math.ceil(totalPerfil / 3.0);
+
+        // SEMPRE soma portas
         if (portas != null) {
             for (Porta p : portas) {
                 r.perfilU += calcularPerfilPorta(p);
             }
         }
 
+        r.perfilU += 1;
         // =============================
         // FIXAÇÃO
         // =============================
@@ -266,7 +283,7 @@ public class FormatoCalculator {
         // =============================
         // CALCULA ÁREAS E APROVEITAMENTO
         // =============================
-        r.calcularAreas();
+        r.calcularAreas(r.requerPiso);
 
         return r;
     }
