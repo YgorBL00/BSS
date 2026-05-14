@@ -22,7 +22,7 @@ public class Launcher extends Application {
         Scene scene = new Scene(root, 1150, 750);
 
         stage.getIcons().add(
-                new Image(getClass().getResourceAsStream("/icons/icone.png"))
+                new Image(getClass().getResourceAsStream("/icons/icone.ico"))
         );
 
         stage.setTitle("BSS");
