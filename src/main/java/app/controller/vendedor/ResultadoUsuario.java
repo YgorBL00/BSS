@@ -1395,6 +1395,10 @@ public class ResultadoUsuario {
                     lblCusto.getText()
             );
 
+            controller.setMateriais(
+                    new ArrayList<>(tableMateriais.getItems())
+            );
+
             Stage stage = new Stage();
             stage.setScene(new Scene(root,750,750));
             stage.show();

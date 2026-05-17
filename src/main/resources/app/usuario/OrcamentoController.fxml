@@ -138,6 +138,7 @@
                             onAction="#calcularVenda"/>
 
                     <Button text="Gerar Relatório"
+                            onAction="#confirmarVenda"
                             prefWidth="160"
                             style="-fx-background-color:#2196F3; -fx-text-fill:white;"/>
                 </HBox>
